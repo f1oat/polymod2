@@ -1,0 +1,9 @@
+/.vs
+/.vscode
+/Release
+/__vm
+/Debug
+/diag01.vcxproj
+/diag01.vcxproj.filters
+/diag01.vcxproj.user
+/diag01.sln
