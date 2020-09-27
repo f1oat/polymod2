@@ -79,13 +79,13 @@ void pinMapper_t::dumpChanges()
   if (pinType != socketInput) {
     valueChangeList_t list = getValueChangeList();
     if (list.size() == 0) return;
-    for (int i = 0; i < list.size(); i++) printf("%-14s [%02d] = %5d\n", "change", list[i].pinId, list[i].newValue);
+    for (int i = 0; i < list.size(); i++) printf("%-14s [%02d] = %5d\n", asciiLabels[pinType], list[i].pinId, list[i].newValue);
   }
   else {
     connectionChangeList_t list = getConnectionChangeList();
     if (list.size() == 0) return;
     for (int i = 0; i < list.size(); i++) {
-      char* label = list[i].from.isConnected ? "connection" : "disconnection";
+      char* label = list[i].from.isConnected ? "Connection" : "Disconnection";
       printf("%-14s [%02d.%02d] -> [%02d.%02d]\n", label, list[i].from.moduleId, list[i].from.pinId, this->moduleId, list[i].pinId);
     }
   }
