@@ -26,7 +26,7 @@ public:
   bool isConnected = false;
   bool changed = false;
 
-  connection_t getConnection() { return { confirmedConnection >> 8, confirmedConnection & 0xFF, isConnected }; };
+  connection_t getConnection() { return { (uint8_t)(confirmedConnection >> 8), (uint8_t)(confirmedConnection & 0xFF), isConnected }; };
   void setId(uint8_t moduleId, uint8_t pinId) { serialBuffer = (moduleId << 8) | pinId; };
 };
 
@@ -63,4 +63,4 @@ public:
   void serialIn(uint16_t bitNumber);
 };
 
-#endif PINHANDLER_H
+#endif /*PINHANDLER_H*/

@@ -1,12 +1,13 @@
 
 #include <ArduinoSTL.h>
 #include "module.h"
+#include "console.h"
 
 Module_t *Module = new Module_t(0x55);
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("Starting");
+  xprintf("Starting");
 
   // Define mapping of Arduino physical pins
 
@@ -36,7 +37,6 @@ void loop() {
 
   // Toggle a LED to check digital output feature is working
   if ((counter % 25) == 0) Module->setValue(digitalOutput, 0, 1 - Module->getValue(digitalOutput, 0));
-
   delay(10);
   counter += 1;
 }

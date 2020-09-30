@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "pinhandler.h"
+#include "console.h"
 
 pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t moduleId, uint8_t pinId)
 {
@@ -21,6 +22,8 @@ pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t module
     break;
   case analogInput:
     value.currentValue = analogRead(pinArduino) << 2;
+    break;
+  default:
     break;
   }
 
@@ -52,6 +55,8 @@ void pinHandler_t::updateValue()
     value.currentValue += analogRead(pinArduino);
     threshold = 4;
     break;
+  default:
+    break;
   }
 
   int delta = abs((int)value.prevValue - (int)value.currentValue);
@@ -72,6 +77,8 @@ void pinHandler_t::setBitValue(uint8_t value)
   case digitalInput:
   case socketInput:
   case analogInput:
+    break;
+  default:
     break;
   }
 }
@@ -117,12 +124,10 @@ void pinHandler_t::serialIn(uint16_t bitNumber)
   if (connection.isConnected && connection.serialBuffer == 0xFFFF) {  // Disconnection
     connection.isConnected = false;
     connection.changed = true;
-    //printf("disconnection\n");
   }
   else if (!connection.isConnected && connection.serialBuffer != 0xFFFF) {  // New connection
     connection.confirmedConnection = connection.serialBuffer;
     connection.isConnected = true;
     connection.changed = true;
-    //printf("connection\n");
   }
 }

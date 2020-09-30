@@ -1,3 +1,6 @@
+#ifndef MODULE_H
+#define MODULE_H
+
 #include <Arduino.h>
 #include <ArduinoSTL.h>
 
@@ -38,3 +41,5 @@ class Module_t {
     void dumpValues();
     void dumpChanges();
 };
+
+#endif /*MODULE_H*/

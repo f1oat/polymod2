@@ -1,5 +1,5 @@
 #include "module.h"
-
+#include "console.h"
 
 pinMapper_t::asciiLabels_t pinMapper_t::asciiLabels = {
       { analogInput,    "Analog Input" },
@@ -69,9 +69,9 @@ void pinMapper_t::serialIn(uint8_t bitNumber)
 
 void pinMapper_t::dumpPins()
 {
-  printf("%15s", asciiLabels[pinType]);
-  for (int id = 0; id < pinTable.size(); id++) printf("%5d", pinTable[id]->getValue());
-  printf("\n");
+  xprintf("%15s", asciiLabels[pinType].c_str());
+  for (uint8_t id = 0; id < pinTable.size(); id++) xprintf("%5d", pinTable[id]->getValue());
+  xprintf("\n");
 }
 
 void pinMapper_t::dumpChanges()
@@ -79,14 +79,14 @@ void pinMapper_t::dumpChanges()
   if (pinType != socketInput) {
     valueChangeList_t list = getValueChangeList();
     if (list.size() == 0) return;
-    for (int i = 0; i < list.size(); i++) printf("%-14s [%02d] = %5d\n", asciiLabels[pinType], list[i].pinId, list[i].newValue);
+    for (uint8_t i = 0; i < list.size(); i++) xprintf("%-14s [%02d] = %5d\n", asciiLabels[pinType].c_str(), list[i].pinId, list[i].newValue);
   }
   else {
     connectionChangeList_t list = getConnectionChangeList();
     if (list.size() == 0) return;
-    for (int i = 0; i < list.size(); i++) {
-      char* label = list[i].from.isConnected ? "Connection" : "Disconnection";
-      printf("%-14s [%02d.%02d] -> [%02d.%02d]\n", label, list[i].from.moduleId, list[i].from.pinId, this->moduleId, list[i].pinId);
+    for (uint8_t i = 0; i < list.size(); i++) {
+      string label = list[i].from.isConnected ? "Connection" : "Disconnection";
+      xprintf("%-14s [%02d.%02d] -> [%02d.%02d]\n", label.c_str(), list[i].from.moduleId, list[i].from.pinId, this->moduleId, list[i].pinId);
     }
   }
 }

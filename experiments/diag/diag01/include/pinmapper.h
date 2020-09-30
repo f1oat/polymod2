@@ -30,7 +30,7 @@ class pinMapper_t {
     pinType_t pinType; 
     uint8_t moduleId;
 
-    typedef std::map<pinType_t, char *> asciiLabels_t;
+    typedef std::map<pinType_t, string> asciiLabels_t;
     static asciiLabels_t asciiLabels;
 
   public:
@@ -54,4 +54,4 @@ class pinMapper_t {
 
 };
 
-#endif PINMAPPER_H
+#endif /*PINMAPPER_H*/

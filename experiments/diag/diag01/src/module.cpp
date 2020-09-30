@@ -1,10 +1,11 @@
+#include "console.h"
 #include "module.h"
 
 Module_t::Module_t(uint8_t moduleId)
 {
   this->moduleId = moduleId;
   vector<pinType_t> list = { analogInput, digitalInput, digitalOutput, socketInput, socketOutput };
-  for (int i = 0; i < list.size(); i++) {
+  for (uint8_t i = 0; i < list.size(); i++) {
     mapTable[list[i]] = new pinMapper_t(list[i], moduleId);
   }
 }
@@ -32,12 +33,12 @@ void Module_t::dumpValues()
     maxNbPins = max(it->second->getNbPins(), maxNbPins);
   }
 
-  printf("-----------------------------------------\n");
-  printf("%15s", "");
-  for (int i = 0; i < maxNbPins; i++) printf("   %02d", i);
-  printf("\n");
+  xprintf("-----------------------------------------\n");
+  xprintf("%15s", "");
+  for (int i = 0; i < maxNbPins; i++) xprintf("   %02d", i);
+  xprintf("\n");
   for (it = mapTable.begin(); it != mapTable.end(); it++) it->second->dumpPins();
-  printf("-----------------------------------------\n");
+  xprintf("-----------------------------------------\n");
 }
 
 void Module_t::dumpChanges()
