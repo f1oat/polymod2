@@ -48,6 +48,24 @@ void Module_t::dumpChanges()
   mapTable[socketInput]->dumpChanges();
 }
 
+connectionChangeList_t Module_t::getConnectionChangeList()
+{
+  connectionChangeList_t list = mapTable[socketInput]->getConnectionChangeList();
+  return list;
+}
+
+valueChangeList_t Module_t::getAnalogInputChangeList()
+{
+  valueChangeList_t list = mapTable[analogInput]->getValueChangeList();
+  return list;
+}
+
+valueChangeList_t Module_t::getDigitalInputChangeList()
+{
+  valueChangeList_t list = mapTable[digitalInput]->getValueChangeList();
+  return list;
+}
+
 void Module_t::stepConnections(uint8_t stepNumber)
 {
   uint8_t bitNumber = stepNumber >> 1;
