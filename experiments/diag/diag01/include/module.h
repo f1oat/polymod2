@@ -36,6 +36,12 @@ class Module_t {
     uint16_t getValue(pinType_t t, int id) { return mapTable[t]->pinTable[id]->getValue();  };
     void setValue(pinType_t t, int id, uint16_t value) { mapTable[t]->pinTable[id]->setBitValue(value); };
 
+    // get changes
+
+    connectionChangeList_t getConnectionChangeList();
+    valueChangeList_t getAnalogInputChangeList();
+    valueChangeList_t getDigitalInputChangeList();
+
     // Debug methods
     
     void dumpValues();
