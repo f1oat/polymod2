@@ -1,5 +1,4 @@
-#ifndef PINHANDLER_H
-#define PINHANDLER_H
+#pragma once
 
 #include <Arduino.h>
 #include <ArduinoSTL.h>
@@ -27,7 +26,7 @@ public:
   bool changed = false;
 
   connection_t getConnection() { return { (uint8_t)(confirmedConnection >> 8), (uint8_t)(confirmedConnection & 0xFF), isConnected }; };
-  void setId(uint8_t moduleId, uint8_t pinId) { serialBuffer = (moduleId << 8) | pinId; };
+  void setId(uint8_t pinId) { serialBuffer = pinId; };
 };
 
 typedef struct {
@@ -36,10 +35,11 @@ typedef struct {
   bool changed = false;
 } value_t;
 
-class pinHandler_t {
+struct pinHandler_t {
 protected:
   uint8_t pinArduino;           // Physical pin ID
   pinType_t pinType;
+  uint8_t pinId;
 
   connectionManager_t connection;
   value_t value;
@@ -48,11 +48,13 @@ protected:
   uint8_t debounceDelay = 5;  // Delay before successive read of digital input for debouncing
 
 public:
-  pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t moduleId, uint8_t pinId);
+  pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId);
 
   void updateValue();
   uint16_t getValue(bool *hasChanged = NULL);
   void setBitValue(uint8_t value);
+
+  uint8_t getPinArduino() { return pinArduino; };
 
   connection_t getConnection(bool* hasChanged = NULL);
 
@@ -62,5 +64,3 @@ public:
   void serialOut(uint16_t bitNumber);
   void serialIn(uint16_t bitNumber);
 };
-
-#endif /*PINHANDLER_H*/

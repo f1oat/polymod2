@@ -1,5 +1,4 @@
-#ifndef MODULE_H
-#define MODULE_H
+#pragma once
 
 #include <Arduino.h>
 #include <ArduinoSTL.h>
@@ -9,10 +8,11 @@
 #include <iterator>
 
 #include "pinmapper.h"
+#include "nvmem.h"
 
 using namespace std;
 
-class Module_t {
+class ModuleClass {
   public:
     
   private:
@@ -21,11 +21,22 @@ class Module_t {
     uint8_t moduleId;
     
   public:
-    Module_t(uint8_t moduleId);
+    ModuleClass();
+    ~ModuleClass();
 
-    // Mapping definition
+    // Module configuration
+
+    void inline setModuleId(uint8_t moduleId) { this->moduleId = moduleId; };
+    uint8_t inline getModuleId() { return moduleId; };
 
     void definePins(pinType_t t, vector<uint8_t> pins);
+    vector<byte> getPins(pinType_t t);
+
+    // EEPROM save/load
+
+    void saveConfig();
+    bool loadConfig();
+    bool checkConfig() { return NVMEM.CheckCRC(); };
     
     // I/O methods
 
@@ -33,8 +44,9 @@ class Module_t {
     void stepConnections(uint8_t stepNumber);
     void detectConnections();
 
-    uint16_t getValue(pinType_t t, int id) { return mapTable[t]->pinTable[id]->getValue();  };
-    void setValue(pinType_t t, int id, uint16_t value) { mapTable[t]->pinTable[id]->setBitValue(value); };
+    uint16_t getValue(pinType_t t, int id) { return mapTable[t]->pinTable[id].getValue(); };
+    void setValue(pinType_t t, int id, uint16_t value) { mapTable[t]->pinTable[id].setBitValue(value); };
+    uint8_t getNbPins(pinType_t t) { return mapTable[t] ? mapTable[t]->pinTable.size() : 0; }
 
     // get changes
 
@@ -46,6 +58,7 @@ class Module_t {
     
     void dumpValues();
     void dumpChanges();
+    void blinkDigitalOutputs();
 };
 
-#endif /*MODULE_H*/
+extern ModuleClass Module;

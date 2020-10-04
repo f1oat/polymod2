@@ -1,12 +1,15 @@
 #include <assert.h>
+
 #include "pinhandler.h"
+#include "module.h"
 #include "console.h"
 
-pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t moduleId, uint8_t pinId)
+pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId)
 {
   this->pinType = pinType;
+  this->pinId = pinId;
   this->pinArduino = pinArduino;
-  this->connection.setId(moduleId, pinId);
+  this->connection.setId(pinId);
 
   switch (pinType) {
   case digitalInput:
@@ -105,6 +108,7 @@ connection_t pinHandler_t::getConnection(bool* hasChanged)
 
 void pinHandler_t::serialOut(uint16_t bitNumber)
 {
+  if (bitNumber == 0) connection.serialBuffer = (Module.getModuleId() << 8) | pinId;
   digitalWrite(pinArduino, (connection.serialBuffer >> bitNumber) & 1);
 }
 
