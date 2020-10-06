@@ -20,6 +20,8 @@ class ModuleClass {
     mapTable_t mapTable;
     uint8_t moduleId;
     
+    void dumpPins(boolean showValues);
+
   public:
     ModuleClass();
     ~ModuleClass();
@@ -30,7 +32,10 @@ class ModuleClass {
     uint8_t inline getModuleId() { return moduleId; };
 
     void definePins(pinType_t t, vector<uint8_t> pins);
+    int parsePins(pinType_t t, String);
     vector<byte> getPins(pinType_t t);
+
+    void dumpConfig();
 
     // EEPROM save/load
 

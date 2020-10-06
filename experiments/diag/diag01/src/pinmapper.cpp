@@ -1,14 +1,6 @@
 #include "module.h"
 #include "console.h"
 
-pinMapper_t::asciiLabels_t pinMapper_t::asciiLabels = {
-      { analogInput,    "Analog Input" },
-      { digitalInput,   "Digital Input" },
-      { digitalOutput,  "Digital Output" }, 
-      { socketInput,    "Socket Input" },
-      { socketOutput,   "Socket Output" },
-    };
-
 void pinMapper_t::definePins(vector<uint8_t> pins)
 {
   this->pinType = pinType;
@@ -93,10 +85,26 @@ void pinMapper_t::serialIn(uint8_t bitNumber)
   }
 }
 
-void pinMapper_t::dumpPins()
+void pinMapper_t::printPinType()
 {
-  xprintf(F("%15s"), asciiLabels[pinType].c_str());
-  for (uint8_t id = 0; id < pinTable.size(); id++) xprintf(F("%5d"), pinTable[id].getValue());
+    switch (pinType) {
+    case analogInput:    Serial.print(F("   Analog Input")); break;
+    case digitalInput:   Serial.print(F("  Digital Input")); break;
+    case digitalOutput:  Serial.print(F(" Digital Output")); break;
+    case socketInput:    Serial.print(F("   Socket Input")); break;
+    case socketOutput:   Serial.print(F("  Socket Output")); break;
+    default:             Serial.print(F("              ?")); break;
+  }
+}
+
+void pinMapper_t::dumpPins(bool showValues)
+{
+  printPinType();
+
+  for (uint8_t id = 0; id < pinTable.size(); id++) {
+    if (showValues) xprintf(F("%5d"), pinTable[id].getValue());
+    else xprintf(F("%5s"), pinTable[id].stringPinArduino().c_str());
+  }
   xprintf(F("\n"));
 }
 
@@ -105,7 +113,10 @@ void pinMapper_t::dumpChanges()
   if (pinType != socketInput) {
     valueChangeList_t list = getValueChangeList();
     if (list.size() == 0) return;
-    for (uint8_t i = 0; i < list.size(); i++) xprintf(F("%-14s [%02d] = %5d\n"), asciiLabels[pinType].c_str(), list[i].pinId, list[i].newValue);
+    for (uint8_t i = 0; i < list.size(); i++) {
+      printPinType();
+      xprintf(F("[%02d] = %5d\n"), list[i].pinId, list[i].newValue);
+    }
   }
   else {
     connectionChangeList_t list = getConnectionChangeList();

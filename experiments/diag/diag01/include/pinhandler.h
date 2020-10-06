@@ -55,6 +55,7 @@ public:
   void setBitValue(uint8_t value);
 
   uint8_t getPinArduino() { return pinArduino; };
+  String stringPinArduino() { return (pinArduino < A0) ? String(pinArduino) : 'A' + String(pinArduino-A0); };
 
   connection_t getConnection(bool* hasChanged = NULL);
 

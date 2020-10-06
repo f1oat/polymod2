@@ -26,30 +26,24 @@ void defaultConfig()
 }
 
 void setup() {
-  Serial.begin(9600);;
+  Serial.begin(9600);
   xprintf(F("Starting\n"));
-
-  MEMORY_PRINT_START
-  MEMORY_PRINT_HEAPSTART
-  MEMORY_PRINT_HEAPEND
-  MEMORY_PRINT_STACKSTART
-  MEMORY_PRINT_END
-  MEMORY_PRINT_HEAPSIZE
 
   // Loading config stored in EEPROM
 
-  //Module.checkConfig();
-  //Module.loadConfig();
+  Module.loadConfig();
 
   // Define mapping of Arduino physical pins
 
-  defaultConfig();
+  //defaultConfig();
   //Module.saveConfig();
   //Module.loadConfig();
 
   setup_I2C();
 
   FREERAM_PRINT;
+
+  Module.dumpConfig();
 }
 
 uint16_t counter = 0;
@@ -62,9 +56,6 @@ void loop() {
 
   // Read all pins physical levels
   Module.updateAll(); 
-  
-  // Dump all values every 30 seconds
-  if ((counter % 3000) == 0) Module.dumpValues();
 
   // Dump all changes (inputs level or socket connection);
   Module.dumpChanges();
@@ -73,6 +64,8 @@ void loop() {
   if ((counter % 25) == 0) Module.blinkDigitalOutputs();
   delay(10);
   counter += 1;
+
+  pollCLI();
 }
 
 void receiveEvent(int howMany) {

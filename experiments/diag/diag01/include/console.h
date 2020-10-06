@@ -6,3 +6,5 @@
 #define printf please_use_xprintf
 
 void xprintf(const __FlashStringHelper*, ...);
+
+extern void pollCLI();

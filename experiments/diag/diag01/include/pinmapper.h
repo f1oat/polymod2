@@ -27,10 +27,7 @@ typedef vector<connectionChangeEvent_t> connectionChangeList_t;
 class pinMapper_t {
   protected:
     pinType_t pinType; 
-
-    typedef std::map<pinType_t, string> asciiLabels_t;
-    static asciiLabels_t asciiLabels;
-
+    void printPinType();
   public:
     typedef vector<pinHandler_t> pinTable_t;
     pinTable_t pinTable;
@@ -49,7 +46,7 @@ class pinMapper_t {
     void readPins();                        // Read value of all pins
 
     // Debug functions
-    void dumpPins();                        // Dump value of all pins to console
+    void dumpPins(bool showValues);         // Dump value or arduinoPin of all pins to console
     void dumpChanges();                     // Dump only pins that has changed
 
     // Connections detection methods

@@ -78,6 +78,34 @@ void ModuleClass::definePins(pinType_t t, vector<byte> pins)
   mapTable[t]->definePins(pins);
 }
 
+int ModuleClass::parsePins(pinType_t t, String list)
+{
+  //xprintf(F("definePins %d %s\n"), t, list.c_str());
+
+  if (t == undefined) return -1;
+
+  // Parse the list of pins, separated by spaces
+  
+  vector<uint8_t> pins;
+
+  uint8_t b = 0;
+  uint8_t e = 1;
+  while (b < list.length()) {
+    if (list[b] == ' ') b++;
+    else {
+      e = b;
+      while (e < list.length() && list[e] != ' ') e++;
+      String s = list.substring(b,e);
+      uint8_t newPin = (s[0] == 'A') ? s.substring(1).toInt() + A0 : s.toInt();
+      pins.push_back(newPin);
+      b = e+1;
+    }
+  }
+
+  mapTable[t]->definePins(pins);
+  return 0;
+}
+
 vector<byte> ModuleClass::getPins(pinType_t t)
 {
   return (mapTable[t]) ? mapTable[t]->getPins() : vector<byte>{};
@@ -98,7 +126,7 @@ void ModuleClass::blinkDigitalOutputs()
   }
 }
 
-void ModuleClass::dumpValues()
+void ModuleClass::dumpPins(boolean showValues)
 {
   mapTable_t::iterator it;
   uint8_t maxNbPins = 0;
@@ -107,12 +135,26 @@ void ModuleClass::dumpValues()
     maxNbPins = max(it->second->getNbPins(), maxNbPins);
   } 
 
-  xprintf(F("-----------------------------------------\n"));
-  xprintf(F("%15s"), "");
+  Serial.println();
+  xprintf(showValues ? F("----VALUES-----") : F("-PHYSICAL PINS-"));
+  
   for (int i = 0; i < maxNbPins; i++) xprintf(F("   %02d"), i);
-  xprintf(F("\n"));
-  for (it = mapTable.begin(); it != mapTable.end(); it++) it->second->dumpPins();
-  xprintf(F("-----------------------------------------\n"));
+  Serial.println();
+  
+  for (it = mapTable.begin(); it != mapTable.end(); it++) {
+    it->second->dumpPins(showValues);
+  }
+  Serial.println();
+}
+
+void ModuleClass::dumpConfig()
+{
+  dumpPins(false);
+}
+
+void ModuleClass::dumpValues()
+{
+  dumpPins(true);
 }
 
 void ModuleClass::dumpChanges()
