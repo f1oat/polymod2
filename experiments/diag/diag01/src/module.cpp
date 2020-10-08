@@ -149,6 +149,7 @@ void ModuleClass::dumpPins(boolean showValues)
 
 void ModuleClass::dumpConfig()
 {
+  xprintf(F("=== Module ID = %d ==="), Module.getModuleId());
   dumpPins(false);
 }
 
