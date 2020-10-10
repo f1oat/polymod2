@@ -17,7 +17,7 @@ void setup_I2C() {
 
 void defaultConfig()
 {
-  Module.setModuleId(0x55);
+  Module.setModuleId(0x04);
   Module.definePins(analogInput, {A0, A1, A2, A3, A6, A7});
   Module.definePins(digitalInput,{2, 3});
   Module.definePins(digitalOutput,{13});
@@ -33,24 +33,26 @@ void setup() {
 
   if (!Module.loadConfig()) defaultConfig();
 
-  setup_I2C();
   FREERAM_PRINT;
   Module.dumpConfig();
+
+  setup_I2C();
 }
 
 uint16_t counter = 0;
+bool i2c_active = false;
 
 void loop() {
   // Poll socket connections every 100 ms
   // This is for standalone operation only
   // For production system, polling will be done via I2C broadcast messages
-  if ((counter % 10) == 0) Module.detectConnections();
+  if (!i2c_active && (counter % 10) == 0) Module.detectConnections();
 
   // Read all pins physical levels
   Module.updateAll(); 
 
   // Dump all changes (inputs level or socket connection);
-  Module.dumpChanges();
+  if (!i2c_active) Module.dumpChanges();
 
   // Toggle a LED to check digital output feature is working
   if ((counter % 25) == 0) Module.blinkDigitalOutputs();
@@ -63,6 +65,8 @@ void loop() {
 void receiveEvent(int howMany) {
   byte message[2];
   byte tickNum;
+
+  i2c_active = true;
 
   for (uint8_t i=0; i<howMany ; i++){
     if (i<sizeof(message)) message[i] = Wire.read();
@@ -85,7 +89,6 @@ void requestEvent() {
   byte numNewDisconnected = 0;
 
   connectionChangeList_t list = Module.getConnectionChangeList();
-  if (list.size() == 0) return;
 
   // Count number of connections and disconnections
 
@@ -98,11 +101,11 @@ void requestEvent() {
   Wire.write(numNewDisconnected);
 
   // Send list of connections, and then list of disconnections
-  // In the following loop, c==1 means connections, c==0 means disconnections
+  // In the following loop, nc==0 means disconnections, nc==1 means connections
 
-  for (uint8_t c=1; c>=0; c--) {
+  for (uint8_t nc=0; nc<=1; nc++) {
     for (uint8_t i = 0; i < list.size(); i++) {
-      if (list[i].from.isConnected != c) continue;  // Process only the right event type
+      if (list[i].from.isConnected == nc) continue;  // Process only the right event type
       Wire.write(list[i].from.moduleId);
       Wire.write(list[i].from.pinId);
       Wire.write(Module.getModuleId());
