@@ -31,18 +31,10 @@ void setup() {
 
   // Loading config stored in EEPROM
 
-  Module.loadConfig();
-
-  // Define mapping of Arduino physical pins
-
-  //defaultConfig();
-  //Module.saveConfig();
-  //Module.loadConfig();
+  if (!Module.loadConfig()) defaultConfig();
 
   setup_I2C();
-
   FREERAM_PRINT;
-
   Module.dumpConfig();
 }
 

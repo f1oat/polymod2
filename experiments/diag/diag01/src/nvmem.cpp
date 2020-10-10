@@ -35,7 +35,7 @@ bool NVMEMClass::CheckCRC(void)
 
 	EEPROM.get(EEPROM.length() - 4, version);
 	if (version != _version) {
-		xprintf(F("Bad version %04X (waiting %04X)\n"), _version);
+		xprintf(F("Bad EEPROM version %04X (waiting %04X)\n"), version, _version);
 		return false;
 	}
 
