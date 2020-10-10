@@ -8,11 +8,24 @@
 void receiveEvent(int howMany);
 void requestEvent();
 
+struct {
+  uint16_t onReceiveCount = 0;
+  uint16_t onRequestCount = 0;
+  uint16_t stepConnectionsCount = 0;
+} I2C_stats;
+
 void setup_I2C() {
   Wire.begin(Module.getModuleId());
   TWAR = (Module.getModuleId() << 1) | 1; // enable broadcasts to be received http://www.gammon.com.au/i2c
   Wire.onReceive(receiveEvent);
   Wire.onRequest(requestEvent);
+}
+
+void I2C_dump_stats() {
+  xprintf(F("recv=%d, req=%d, step=%d\n"), 
+    I2C_stats.onReceiveCount,
+    I2C_stats.onRequestCount,
+    I2C_stats.stepConnectionsCount);
 }
 
 void defaultConfig()
@@ -60,6 +73,9 @@ void loop() {
   // Check memory usage every 100ms
   if ((counter % 10) == 0) sysinfo.checkMemory();
 
+  // I2C stats every second
+  //if ((counter % 100) == 0) I2C_dump_stats();
+
   delay(10);
   counter += 1;
 
@@ -70,10 +86,13 @@ void receiveEvent(int howMany) {
   byte message[2];
   byte tickNum;
 
+  I2C_stats.onReceiveCount++;
+
   i2c_active = true;
 
   for (uint8_t i=0; i<howMany ; i++){
-    if (i<sizeof(message)) message[i] = Wire.read();
+    byte data = Wire.read();
+    if (i<sizeof(message)) message[i] = data;
   }
   
   if (howMany != 2) return; // Bad message
@@ -81,7 +100,9 @@ void receiveEvent(int howMany) {
   switch (message[0]) {
     case 0:   // Tick message
       tickNum = message[1];
+      if (tickNum > 32) Serial.println("bad tickNum");
       Module.stepConnections(tickNum);
+      I2C_stats.stepConnectionsCount++;
       break;
     default:  // Space for other message types
       break;
@@ -91,6 +112,8 @@ void receiveEvent(int howMany) {
 void requestEvent() {
   byte numNewConnected = 0;
   byte numNewDisconnected = 0;
+
+  I2C_stats.onRequestCount++;
 
   connectionChangeList_t list = Module.getConnectionChangeList();
 
