@@ -63,10 +63,10 @@ void sysinfoClass::checkMemory()
 {
 	static bool warning = false;
 	int threshold = 32;	// We need at least this number of bytes of margin
-	
+
 	if (warning) return;
 	int u = unusedRam();
-	if (threshold > u) return;
+	if (threshold < u) return;
 	warning = true;
 	xprintf(F("*** warning: memory low (%d unused bytes < %d)\n"), u, threshold);
 }

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ArduinoSTL.h>
 #include <CLI.h>
+#include <Wire.h>
 
 #include "module.h"
 #include "console.h"
@@ -141,6 +142,8 @@ static void restartModule()
     if (readEcho() == 'y') {
         Serial.print(F("Restarting module\n"));
         delay(500);
+        Wire.end();
+        cli();
         resetFunc();
     }
     else {
