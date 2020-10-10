@@ -128,7 +128,7 @@ void requestEvent() {
   Wire.write(numNewDisconnected);
 
   // Send list of connections, and then list of disconnections
-  // In the following loop, nc==0 means disconnections, nc==1 means connections
+  // In the following loop, nc==0 means connections, nc==1 means disconnections
 
   for (uint8_t nc=0; nc<=1; nc++) {
     for (uint8_t i = 0; i < list.size(); i++) {
