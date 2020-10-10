@@ -4,6 +4,7 @@
 
 #include "module.h"
 #include "console.h"
+#include "sysinfo.h"
 
 void xprintf(const __FlashStringHelper* fmt, ...) {
   char buf[64];
@@ -74,6 +75,8 @@ static void help() {
     Serial.println(F("\nUsage:"));
     Serial.println(F("c:                  print current configuration"));
     Serial.println(F("v:                  print pins value"));
+    Serial.println(F("i:                  print system informations"));
+    Serial.println(F("R:                  restart module"));
     Serial.println(F("m <moduId>:         set Module ID"));
     Serial.println(F("ai <pin> <pin> ...: define analog inputs"));
     Serial.println(F("di <pin> <pin> ...: define digital inputs"));
@@ -120,15 +123,31 @@ static void setModuleId(String cmdline)
 
 static void writeConfig()
 {
-        Serial.print(F("Save config (y/n) ?"));
-        if (readEcho() == 'y') {
-            Module.saveConfig();
-            Serial.println(F("\nConfiguration saved"));
-        }
-        else {
-            Serial.println(F("\nAbort"));
-        }
+    Serial.print(F("Save config (y/n) ?"));
+    if (readEcho() == 'y') {
+        Module.saveConfig();
+        Serial.println(F("\nConfiguration saved"));
+    }
+    else {
+        Serial.println(F("\nAbort"));
+    }
 }
+
+static void restartModule()
+{
+    void(* resetFunc) (void) = 0; //declare reset function @ address 0
+
+    Serial.print(F("Restart module (y/n) ?"));
+    if (readEcho() == 'y') {
+        Serial.print(F("Restarting module\n"));
+        delay(500);
+        resetFunc();
+    }
+    else {
+        Serial.println(F("\nAbort"));
+    }
+}
+
 void pollCLI()
 {
     if (!Serial.available()) return;
@@ -152,6 +171,11 @@ void pollCLI()
         case 'w':
             writeConfig();
             break;
+        case 'i':
+            sysinfo.dumpStats();
+            break;
+        case 'R':
+            restartModule();
         default:
             help();
             break;

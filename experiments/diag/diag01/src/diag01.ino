@@ -1,9 +1,9 @@
 #include <ArduinoSTL.h>
 #include <Wire.h>
-#include <MemoryUsage.h>
 
 #include "module.h"
 #include "console.h"
+#include "sysinfo.h"
 
 void receiveEvent(int howMany);
 void requestEvent();
@@ -26,6 +26,7 @@ void defaultConfig()
 }
 
 void setup() {
+  sysinfo.wipeRam();
   Serial.begin(9600);
   xprintf(F("Starting\n"));
 
@@ -33,9 +34,8 @@ void setup() {
 
   if (!Module.loadConfig()) defaultConfig();
 
-  FREERAM_PRINT;
+  sysinfo.dumpStats();
   Module.dumpConfig();
-
   setup_I2C();
 }
 
@@ -56,6 +56,10 @@ void loop() {
 
   // Toggle a LED to check digital output feature is working
   if ((counter % 25) == 0) Module.blinkDigitalOutputs();
+
+  // Check memory usage every 100ms
+  if ((counter % 10) == 0) sysinfo.checkMemory();
+
   delay(10);
   counter += 1;
 
