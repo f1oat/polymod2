@@ -4,6 +4,10 @@
 #include "module.h"
 #include "console.h"
 
+uint8_t pinHandler_t::debounceDelay = 5;      // Delay before successive reads of digital input for debouncing
+uint8_t pinHandler_t::denoiseFilterCoeff = 2; // Anlog filter constant will 1<<analogFilterCoeff 
+uint8_t pinHandler_t::denoiseThreshold = 6;   // Threshold for change detection of analog inputs
+
 pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId)
 {
   this->pinType = pinType;
@@ -24,7 +28,7 @@ pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId)
     digitalWrite(pinArduino, 0);
     break;
   case analogInput:
-    value.currentValue = analogRead(pinArduino) << 2;
+    value.currentValue = analogRead(pinArduino) << denoiseFilterCoeff;
     break;
   default:
     break;
@@ -35,8 +39,6 @@ pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId)
 
 void pinHandler_t::updateValue()
 {
-  int threshold = 1;
-
   if (debounceCounter > 0) {
     debounceCounter--;
     return;
@@ -54,9 +56,8 @@ void pinHandler_t::updateValue()
     break;
   case analogInput:
     // Apply IIR filter with coeff 0.25
-    value.currentValue -= value.currentValue >> 2;
+    value.currentValue -= value.currentValue >> denoiseFilterCoeff;
     value.currentValue += analogRead(pinArduino);
-    threshold = 4;
     break;
   default:
     break;
@@ -64,9 +65,10 @@ void pinHandler_t::updateValue()
 
   int delta = abs((int)value.prevValue - (int)value.currentValue);
 
-  if (delta >= threshold) {
+  if (delta > denoiseThreshold) {
     value.prevValue = value.currentValue;
-    value.changed = true;
+    value.changed[0] = true;
+    value.changed[1] = true;
   }
 }
 
@@ -86,21 +88,22 @@ void pinHandler_t::setBitValue(uint8_t value)
   }
 }
 
-uint16_t pinHandler_t::getValue(bool *hasChanged)
+uint16_t pinHandler_t::getValue(bool *hasChanged, uint8_t readerIndex)
 {
-  if (hasChanged) {
-    *hasChanged = value.changed;
-    value.changed = false;
+  if (hasChanged && readerIndex < 2) {
+    *hasChanged = value.changed[readerIndex];
+    value.changed[readerIndex] = false;
   }
 
-  return value.currentValue;
+  if (pinType == analogInput) return value.currentValue >> denoiseFilterCoeff;
+  else return value.currentValue;
 }
 
-connection_t pinHandler_t::getConnection(bool* hasChanged)
+connection_t pinHandler_t::getConnection(bool* hasChanged, uint8_t readerIndex)
 {
   if (hasChanged) {
-    *hasChanged = connection.changed;
-    connection.changed = false;
+    *hasChanged = connection.changed[readerIndex];
+    connection.changed[readerIndex] = false;
   }
 
   return connection.getConnection();
@@ -127,11 +130,13 @@ void pinHandler_t::serialIn(uint16_t bitNumber)
 
   if (connection.isConnected && connection.serialBuffer == 0xFFFF) {  // Disconnection
     connection.isConnected = false;
-    connection.changed = true;
+    connection.changed[0] = true;
+    connection.changed[1] = true;
   }
   else if (!connection.isConnected && connection.serialBuffer != 0xFFFF) {  // New connection
     connection.confirmedConnection = connection.serialBuffer;
     connection.isConnected = true;
-    connection.changed = true;
+    connection.changed[0] = true;
+    connection.changed[1] = true;
   }
 }

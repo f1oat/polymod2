@@ -23,7 +23,7 @@ public:
   uint16_t prevSerialBuffer = 0xFFFF;   // Used to confirm connection
   uint16_t confirmedConnection = 0xFFFF;
   bool isConnected = false;
-  bool changed = false;
+  bool changed[2] = { false, false };   // we have to independant readers: I2C and console
 
   connection_t getConnection() { return { (uint8_t)(confirmedConnection >> 8), (uint8_t)(confirmedConnection & 0xFF), isConnected }; };
   void setId(uint8_t pinId) { serialBuffer = pinId; };
@@ -32,7 +32,7 @@ public:
 typedef struct {
   uint16_t prevValue = 0;       // Previous value, used for change detection
   uint16_t currentValue = 0;    // Current Value for this pin
-  bool changed = false;
+  bool changed[2] = { false, false }; // we have to independant readers: I2C and console
 } value_t;
 
 struct pinHandler_t {
@@ -45,19 +45,22 @@ protected:
   value_t value;
 
   uint8_t debounceCounter = 0;
-  uint8_t debounceDelay = 5;  // Delay before successive read of digital input for debouncing
+
+  static uint8_t debounceDelay;       // Delay before successive read of digital input for debouncing
+  static uint8_t denoiseFilterCoeff;  // Anlog filter constant will 1<<analogFilterCoeff 
+  static uint8_t denoiseThreshold;    // Threshold for change detection of analog inputs
 
 public:
   pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId);
 
   void updateValue();
-  uint16_t getValue(bool *hasChanged = NULL);
+  uint16_t getValue(bool *hasChanged = NULL, uint8_t readerIndex = 0);
   void setBitValue(uint8_t value);
 
   uint8_t getPinArduino() { return pinArduino; };
   String stringPinArduino() { return (pinArduino < A0) ? String(pinArduino) : 'A' + String(pinArduino-A0); };
 
-  connection_t getConnection(bool* hasChanged = NULL);
+  connection_t getConnection(bool* hasChanged = NULL, uint8_t readerIndex = 0);
 
   //void setPin(uint8_t value) { digitalWrite(pinArduino, value); };
   //uint8_t getPin() { return digitalRead(pinArduino); };

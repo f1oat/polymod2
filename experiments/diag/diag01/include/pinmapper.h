@@ -41,8 +41,8 @@ class pinMapper_t {
     uint8_t getNbPins() { return pinTable.size(); };
 
     // Values methods
-    valueChangeList_t getValueChangeList();
-    connectionChangeList_t getConnectionChangeList();
+    valueChangeList_t getValueChangeList(uint8_t readerIndex = 0);  // readerIndeswx should be one for console
+    connectionChangeList_t getConnectionChangeList(uint8_t readerIndex = 0);
     void readPins();                        // Read value of all pins
 
     // Debug functions

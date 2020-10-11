@@ -41,28 +41,28 @@ void pinMapper_t::readPins()
   for (pin = pinTable.begin(); pin < pinTable.end(); pin++) (*pin).updateValue();
 }
 
-valueChangeList_t pinMapper_t::getValueChangeList()
+valueChangeList_t pinMapper_t::getValueChangeList(uint8_t readerIndex)
 {
   valueChangeEvent_t ev;
   valueChangeList_t list;
 
   for (ev.pinId = 0; ev.pinId < pinTable.size(); ev.pinId++) {
     bool changed;
-    ev.newValue = pinTable[ev.pinId].getValue(&changed);
+    ev.newValue = pinTable[ev.pinId].getValue(&changed, readerIndex);
     if (changed) list.push_back(ev);
   }
 
   return list;
 }
 
-connectionChangeList_t pinMapper_t::getConnectionChangeList()
+connectionChangeList_t pinMapper_t::getConnectionChangeList(uint8_t readerIndex)
 {
   connectionChangeEvent_t ev;
   connectionChangeList_t list;
 
   for (ev.pinId = 0; ev.pinId < pinTable.size(); ev.pinId++) {
     bool changed;
-    ev.from = pinTable[ev.pinId].getConnection(&changed);
+    ev.from = pinTable[ev.pinId].getConnection(&changed, readerIndex);
     if (changed) list.push_back(ev);
   }
 
@@ -111,7 +111,7 @@ void pinMapper_t::dumpPins(bool showValues)
 void pinMapper_t::dumpChanges()
 {
   if (pinType != socketInput) {
-    valueChangeList_t list = getValueChangeList();
+    valueChangeList_t list = getValueChangeList(1); // readerIndex = 1 means console
     if (list.size() == 0) return;
     for (uint8_t i = 0; i < list.size(); i++) {
       printPinType();
@@ -119,7 +119,7 @@ void pinMapper_t::dumpChanges()
     }
   }
   else {
-    connectionChangeList_t list = getConnectionChangeList();
+    connectionChangeList_t list = getConnectionChangeList(1); // readerIndex = 1 means console
     if (list.size() == 0) return;
     for (uint8_t i = 0; i < list.size(); i++) {
       string label = list[i].from.isConnected ? "Connection" : "Disconnection";

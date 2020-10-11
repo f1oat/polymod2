@@ -65,7 +65,7 @@ void loop() {
   Module.updateAll(); 
 
   // Dump all changes (inputs level or socket connection);
-  if (!i2c_active) Module.dumpChanges();
+  Module.dumpChanges();
 
   // Toggle a LED to check digital output feature is working
   if ((counter % 25) == 0) Module.blinkDigitalOutputs();
