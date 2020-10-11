@@ -48,27 +48,32 @@ void pinHandler_t::updateValue()
   case digitalInput:
   case socketInput:
     value.currentValue = digitalRead(pinArduino);
-    if (value.prevValue != value.currentValue) debounceCounter = debounceDelay;
+    if (value.prevValue != value.currentValue) {
+      value.prevValue = value.currentValue;
+      value.changed[0] = true;
+      value.changed[1] = true;
+      debounceCounter = debounceDelay;
+    }
     break;
   case digitalOutput:
   case socketOutput:
     value.currentValue = digitalRead(pinArduino);
     break;
   case analogInput:
-    // Apply IIR filter with coeff 0.25
-    value.currentValue -= value.currentValue >> denoiseFilterCoeff;
-    value.currentValue += analogRead(pinArduino);
+    {
+      // Apply IIR filter with coeff 0.25
+      value.currentValue -= value.currentValue >> denoiseFilterCoeff;
+      value.currentValue += analogRead(pinArduino);
+      int delta = abs((int)value.prevValue - (int)value.currentValue);
+      if (delta > denoiseThreshold) {
+        value.prevValue = value.currentValue;
+        value.changed[0] = true;
+        value.changed[1] = true;
+      }
+    }
     break;
   default:
     break;
-  }
-
-  int delta = abs((int)value.prevValue - (int)value.currentValue);
-
-  if (delta > denoiseThreshold) {
-    value.prevValue = value.currentValue;
-    value.changed[0] = true;
-    value.changed[1] = true;
   }
 }
 
