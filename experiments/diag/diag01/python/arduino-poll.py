@@ -14,26 +14,17 @@ def testConnections():
 
 def getChanges():
 	for addr in modules:
-		block = bus.read_i2c_block_data(addr, 1, 18) # Offset=1 means connections polling
-		nb_new_connections = block[0]
-		nb_new_disconnections = block[1]
-		ptr = 2
-
-		for i in range(0, nb_new_connections):
-			fromModule = block[ptr]
-			fromPort = block[ptr+1]
-			toModule = block[ptr+2]
-			toPort = block[ptr+3]
-			ptr += 4
-			print("connected: m%dp%d -> m%dp%d" % (fromModule, fromPort, toModule, toPort))
-
-		for i in range(0, nb_new_disconnections):
-			fromModule = block[ptr]
-			fromPort = block[ptr+1]
-			toModule = block[ptr+2]
-			toPort = block[ptr+3]
-			ptr += 4
-			print("disconnected: m%dp%d -> m%dp%d" % (fromModule, fromPort, toModule, toPort))
+		pdu = bus.read_i2c_block_data(addr, 1, 8) # Offset=1 means connections polling
+		ptr = 0
+		while (pdu[ptr] != 0xFF and ptr <= 30):
+			fromModule = pdu[ptr] & 0x7F
+			connected = pdu[ptr] & 0x80
+			fromPort = pdu[ptr+1]
+			toModule = addr
+			toPort = pdu[ptr+2]
+			ptr += 3
+			if (connected): print("connected: m%dp%d -> m%dp%d" % (fromModule, fromPort, toModule, toPort))
+			else: print("disconnected: m%dp%d -> m%dp%d" % (fromModule, fromPort, toModule, toPort))
 
 if __name__ == "__main__":
 	client = udp_client.SimpleUDPClient('127.0.0.1', 9001)
