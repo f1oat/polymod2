@@ -90,7 +90,7 @@ void receiveEvent(int howMany) {
 
   i2c_active = true;
 
-  for (uint8_t i=0; i<howMany ; i++){
+  for (uint8_t i=0; i<howMany ; i++) {
     byte data = Wire.read();
     if (i<sizeof(message)) message[i] = data;
   }

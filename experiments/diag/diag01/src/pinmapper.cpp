@@ -6,11 +6,16 @@ void pinMapper_t::definePins(vector<uint8_t> pins)
   this->pinType = pinType;
 
   pinTable.clear();
+  if (pinChange[0]) delete pinChange[0];
+  if (pinChange[1]) delete pinChange[1];
   
   for (uint8_t pinId = 0; pinId < pins.size(); pinId++) {
     pinHandler_t pinHandler(pinType, pins[pinId], pinId);
     pinTable.push_back(pinHandler);
   }
+
+  pinChange[0] = new bitArray(pins.size());
+  pinChange[1] = new bitArray(pins.size()); 
 }
 
 pinMapper_t::~pinMapper_t()
@@ -37,19 +42,23 @@ vector<uint8_t> pinMapper_t::getPins()
 
 void pinMapper_t::readPins()
 {  
-  pinTable_t::iterator pin;
-  for (pin = pinTable.begin(); pin < pinTable.end(); pin++) (*pin).updateValue();
+  for (uint8_t i = 0; i < pinTable.size(); i++) {
+    if (pinTable[i].updateValue()) {   // pin change
+      pinChange[0]->set(i, true);
+      pinChange[1]->set(i, true);
+    }
+  }
 }
 
 valueChangeList_t pinMapper_t::getValueChangeList(uint8_t readerIndex)
 {
-  valueChangeEvent_t ev;
   valueChangeList_t list;
 
-  for (ev.pinId = 0; ev.pinId < pinTable.size(); ev.pinId++) {
-    bool changed;
-    ev.newValue = pinTable[ev.pinId].getValue(&changed, readerIndex);
-    if (changed) list.push_back(ev);
+  for (uint8_t pinId = 0; pinId < pinTable.size(); pinId++) {
+    if (pinChange[readerIndex]->get(pinId)) {
+      list.push_back( { pinId, pinTable[pinId].getValue() });
+      pinChange[readerIndex]->set(pinId, false);
+    }
   }
 
   return list;
@@ -57,13 +66,13 @@ valueChangeList_t pinMapper_t::getValueChangeList(uint8_t readerIndex)
 
 connectionChangeList_t pinMapper_t::getConnectionChangeList(uint8_t readerIndex)
 {
-  connectionChangeEvent_t ev;
   connectionChangeList_t list;
 
-  for (ev.pinId = 0; ev.pinId < pinTable.size(); ev.pinId++) {
-    bool changed;
-    ev.from = pinTable[ev.pinId].getConnection(&changed, readerIndex);
-    if (changed) list.push_back(ev);
+  for (uint8_t pinId = 0; pinId < pinTable.size(); pinId++) {
+    if (pinChange[readerIndex]->get(pinId)) {
+      list.push_back( { pinId, pinTable[pinId].getConnection() });
+      pinChange[readerIndex]->set(pinId, false);
+    }
   }
 
   return list;
@@ -79,9 +88,11 @@ void pinMapper_t::serialOut(uint8_t bitNumber)
 
 void pinMapper_t::serialIn(uint8_t bitNumber)
 {
-  pinTable_t::iterator pin;
-  for (pin = pinTable.begin(); pin < pinTable.end(); pin++) {
-    (*pin).serialIn(bitNumber);
+  for (uint8_t i = 0; i < pinTable.size(); i++) {
+    if (pinTable[i].serialIn(bitNumber)) {
+      pinChange[0]->set(i, true);
+      pinChange[1]->set(i, true);      
+    }
   }
 }
 

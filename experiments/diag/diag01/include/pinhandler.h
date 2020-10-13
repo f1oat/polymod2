@@ -32,7 +32,6 @@ public:
 typedef struct {
   uint16_t prevValue = 0;       // Previous value, used for change detection
   uint16_t currentValue = 0;    // Current Value for this pin
-  bool changed[2] = { false, false }; // we have to independant readers: I2C and console
 } value_t;
 
 struct pinHandler_t {
@@ -53,18 +52,18 @@ protected:
 public:
   pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId);
 
-  void updateValue();
-  uint16_t getValue(bool *hasChanged = NULL, uint8_t readerIndex = 0);
+  bool updateValue();   // Return true of value change
+  uint16_t getValue();
   void setBitValue(uint8_t value);
 
   uint8_t getPinArduino() { return pinArduino; };
   String stringPinArduino() { return (pinArduino < A0) ? String(pinArduino) : 'A' + String(pinArduino-A0); };
 
-  connection_t getConnection(bool* hasChanged = NULL, uint8_t readerIndex = 0);
+  connection_t getConnection();
 
   //void setPin(uint8_t value) { digitalWrite(pinArduino, value); };
   //uint8_t getPin() { return digitalRead(pinArduino); };
 
   void serialOut(uint16_t bitNumber);
-  void serialIn(uint16_t bitNumber);
+  bool serialIn(uint16_t bitNumber);    // Return true if connection change
 };

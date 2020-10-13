@@ -37,26 +37,25 @@ pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId)
   value.prevValue = value.currentValue;
 }
 
-void pinHandler_t::updateValue()
+bool pinHandler_t::updateValue()
 {
   if (debounceCounter > 0) {
     debounceCounter--;
-    return;
+    return false;
   }
 
   switch (pinType) {
   case digitalInput:
-  case socketInput:
     value.currentValue = digitalRead(pinArduino);
     if (value.prevValue != value.currentValue) {
       value.prevValue = value.currentValue;
-      value.changed[0] = true;
-      value.changed[1] = true;
       debounceCounter = debounceDelay;
+      return true;
     }
     break;
   case digitalOutput:
   case socketOutput:
+  case socketInput:
     value.currentValue = digitalRead(pinArduino);
     break;
   case analogInput:
@@ -67,14 +66,15 @@ void pinHandler_t::updateValue()
       int delta = abs((int)value.prevValue - (int)value.currentValue);
       if (delta > denoiseThreshold) {
         value.prevValue = value.currentValue;
-        value.changed[0] = true;
-        value.changed[1] = true;
+        return true;
       }
     }
     break;
   default:
     break;
   }
+
+  return false;
 }
 
 void pinHandler_t::setBitValue(uint8_t value)
@@ -93,24 +93,14 @@ void pinHandler_t::setBitValue(uint8_t value)
   }
 }
 
-uint16_t pinHandler_t::getValue(bool *hasChanged, uint8_t readerIndex)
+uint16_t pinHandler_t::getValue()
 {
-  if (hasChanged && readerIndex < 2) {
-    *hasChanged = value.changed[readerIndex];
-    value.changed[readerIndex] = false;
-  }
-
   if (pinType == analogInput) return value.currentValue >> denoiseFilterCoeff;
   else return value.currentValue;
 }
 
-connection_t pinHandler_t::getConnection(bool* hasChanged, uint8_t readerIndex)
+connection_t pinHandler_t::getConnection()
 {
-  if (hasChanged) {
-    *hasChanged = connection.changed[readerIndex];
-    connection.changed[readerIndex] = false;
-  }
-
   return connection.getConnection();
 }
 
@@ -120,28 +110,28 @@ void pinHandler_t::serialOut(uint16_t bitNumber)
   digitalWrite(pinArduino, (connection.serialBuffer >> bitNumber) & 1);
 }
 
-void pinHandler_t::serialIn(uint16_t bitNumber)
+bool pinHandler_t::serialIn(uint16_t bitNumber)
 {
   uint16_t bit = digitalRead(pinArduino);
   if (bitNumber == 0) connection.serialBuffer = 0;
   connection.serialBuffer |= bit << bitNumber;
 
-  if (bitNumber != 15) return; // 16 bits not yet received
+  if (bitNumber != 15) return false; // 16 bits not yet received
 
   if (connection.prevSerialBuffer != connection.serialBuffer) { // Received ID not confirmed, probably glitch during cable connection
     connection.prevSerialBuffer = connection.serialBuffer;
-    return; 
+    return false; 
   }
 
   if (connection.isConnected && connection.serialBuffer == 0xFFFF) {  // Disconnection
     connection.isConnected = false;
-    connection.changed[0] = true;
-    connection.changed[1] = true;
+    return true;
   }
   else if (!connection.isConnected && connection.serialBuffer != 0xFFFF) {  // New connection
     connection.confirmedConnection = connection.serialBuffer;
     connection.isConnected = true;
-    connection.changed[0] = true;
-    connection.changed[1] = true;
+    return true;
   }
+
+  return false;
 }

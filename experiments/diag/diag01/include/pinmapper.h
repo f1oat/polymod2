@@ -8,6 +8,7 @@
 #include <iterator>
 
 #include "pinhandler.h"
+#include "bitArray.h"
 
 using namespace std;
 
@@ -31,8 +32,9 @@ class pinMapper_t {
   public:
     typedef vector<pinHandler_t> pinTable_t;
     pinTable_t pinTable;
+    bitArray *pinChange[2]; // bit field to track pin state change, 2 tables, one for I2C and one for console
 
-    pinMapper_t(pinType_t pinType) { this->pinType = pinType; }
+    pinMapper_t(pinType_t pinType) { this->pinType = pinType; this->pinChange[0] = this->pinChange[1] = 0; }
     ~pinMapper_t();
 
     // Pins configuration
