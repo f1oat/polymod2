@@ -109,34 +109,29 @@ void receiveEvent(int howMany) {
   }
 }
 
-void requestEvent() {
-  byte numNewConnected = 0;
-  byte numNewDisconnected = 0;
+#define I2C_WRITE(b) { I2C_len++; Wire.write(b); }
+#define I2C_MAX_SIZE 32
 
+void requestEvent()
+{
   I2C_stats.onRequestCount++;
+  uint8_t I2C_len = 0;
 
-  connectionChangeList_t list = Module.getConnectionChangeList();
+  // For connections reporting the format is a list of 3 bytes long records, ended by 0xFF
+  // record[0] = from moduleId + bit 7 = connection
+  // record[1] = from pinId
+  // record[2] = to pinId (this module is the connection destination)
+  // moduleId should be <= 126
 
-  // Count number of connections and disconnections
-
-  for (uint8_t i = 0; i < list.size(); i++) {
-    if (list[i].from.isConnected) numNewConnected++;
-    else numNewDisconnected++;
+  while (I2C_len < I2C_MAX_SIZE-3) {  // The total I2C message size is limited to 32 bytes
+    connectionChangeEvent_t event;
+    if (!Module.getNextConnectionChange(event)) break;  // No more connection change to send over I2C
+    I2C_WRITE(event.from.moduleId + (event.from.isConnected ? 0x80 : 00));
+    I2C_WRITE(event.from.pinId);
+    I2C_WRITE(event.pinId);
   }
 
-  Wire.write(numNewConnected);
-  Wire.write(numNewDisconnected);
-
-  // Send list of connections, and then list of disconnections
-  // In the following loop, nc==0 means connections, nc==1 means disconnections
-
-  for (uint8_t nc=0; nc<=1; nc++) {
-    for (uint8_t i = 0; i < list.size(); i++) {
-      if (list[i].from.isConnected == nc) continue;  // Process only the right event type
-      Wire.write(list[i].from.moduleId);
-      Wire.write(list[i].from.pinId);
-      Wire.write(Module.getModuleId());
-      Wire.write(list[i].pinId);
-    }
-  }
+  // End of list marker, if enough room
+  if (I2C_len < 32) I2C_WRITE(0xFF);
+  if (I2C_len < 32) I2C_WRITE(0xFF);
 }

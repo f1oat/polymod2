@@ -42,14 +42,19 @@ class pinMapper_t {
     vector<uint8_t> getPins();              // return current pins configuration
     uint8_t getNbPins() { return pinTable.size(); };
 
-    // Values methods
+    // Methods to get changed values and connections
     valueChangeList_t getValueChangeList(uint8_t readerIndex = 0);  // readerIndeswx should be one for console
     connectionChangeList_t getConnectionChangeList(uint8_t readerIndex = 0);
-    void readPins();                        // Read value of all pins
+    
+    bool getNextValueChange(valueChangeEvent_t &event, uint8_t readerIndex = 0);
+    bool getNextConnectionChange(connectionChangeEvent_t &event, uint8_t readerIndex = 0);
 
     // Debug functions
     void dumpPins(bool showValues);         // Dump value or arduinoPin of all pins to console
     void dumpChanges();                     // Dump only pins that has changed
+
+    // Input management methods
+    void updateAllPins();                   // Read value of all pins and update pinChange bitfields if change
 
     // Connections detection methods
     void serialOut(uint8_t bitNumber);

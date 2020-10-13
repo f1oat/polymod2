@@ -55,9 +55,9 @@ class ModuleClass {
 
     // get changes
 
-    connectionChangeList_t getConnectionChangeList();
-    valueChangeList_t getAnalogInputChangeList();
-    valueChangeList_t getDigitalInputChangeList();
+    bool getNextConnectionChange(connectionChangeEvent_t &event);
+    bool getNextAnalogInputChange(valueChangeEvent_t &event);
+    bool getNextDigitalInputChange(valueChangeEvent_t &event);
 
     // Debug methods
     

@@ -173,7 +173,7 @@ void ModuleClass::updateAll()
   mapTable_t::iterator it;
   for (it = mapTable.begin(); it != mapTable.end(); it++)
   {
-    it->second->readPins();
+    it->second->updateAllPins();
   }
 }
 
@@ -227,22 +227,19 @@ void ModuleClass::dumpChanges()
   mapTable[socketInput]->dumpChanges();
 }
 
-connectionChangeList_t ModuleClass::getConnectionChangeList()
+bool ModuleClass::getNextConnectionChange(connectionChangeEvent_t &event)
 {
-  connectionChangeList_t list = mapTable[socketInput]->getConnectionChangeList();
-  return list;
+  return mapTable[socketInput]->getNextConnectionChange(event);
 }
 
-valueChangeList_t ModuleClass::getAnalogInputChangeList()
+bool ModuleClass::getNextAnalogInputChange(valueChangeEvent_t &event)
 {
-  valueChangeList_t list = mapTable[analogInput]->getValueChangeList();
-  return list;
+  return mapTable[analogInput]->getNextValueChange(event);
 }
 
-valueChangeList_t ModuleClass::getDigitalInputChangeList()
+bool ModuleClass::getNextDigitalInputChange(valueChangeEvent_t &event)
 {
-  valueChangeList_t list = mapTable[digitalInput]->getValueChangeList();
-  return list;
+  return mapTable[digitalInput]->getNextValueChange(event);
 }
 
 void ModuleClass::stepConnections(uint8_t stepNumber)

@@ -112,6 +112,11 @@ static void setModuleId(String cmdline)
 {
     uint8_t moduleId = cmdline.substring(1).toInt();
 
+    if (moduleId > 126) {
+        xprintf(F("Invalid Module ID %d (should be in the range 0-126)\n"), moduleId);
+        return;
+    }
+
     xprintf(F("Set Module ID to %d (y/n) ?"), moduleId);
     if (readEcho() == 'y') {
         Module.setModuleId(moduleId);

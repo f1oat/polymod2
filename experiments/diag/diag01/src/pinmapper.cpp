@@ -40,7 +40,7 @@ vector<uint8_t> pinMapper_t::getPins()
   return pins;
 }
 
-void pinMapper_t::readPins()
+void pinMapper_t::updateAllPins()
 {  
   for (uint8_t i = 0; i < pinTable.size(); i++) {
     if (pinTable[i].updateValue()) {   // pin change
@@ -57,13 +57,26 @@ valueChangeList_t pinMapper_t::getValueChangeList(uint8_t readerIndex)
   for (uint8_t pinId = 0; pinId < pinTable.size(); pinId++) {
     if (pinChange[readerIndex]->get(pinId)) {
       list.push_back( { pinId, pinTable[pinId].getValue() });
-      pinChange[readerIndex]->set(pinId, false);
+      pinChange[readerIndex]->set(pinId, false);  // We have read the change
     }
   }
 
   return list;
 }
 
+bool pinMapper_t::getNextValueChange(valueChangeEvent_t &event, uint8_t readerIndex)
+{
+  for (uint8_t pinId = 0; pinId < pinTable.size(); pinId++) {
+    if (pinChange[readerIndex]->get(pinId)) {
+      event = { pinId, pinTable[pinId].getValue() };
+      pinChange[readerIndex]->set(pinId, false);  // We have read the change
+      return true;
+    }
+  }
+
+  return false;
+}
+    
 connectionChangeList_t pinMapper_t::getConnectionChangeList(uint8_t readerIndex)
 {
   connectionChangeList_t list;
@@ -71,11 +84,24 @@ connectionChangeList_t pinMapper_t::getConnectionChangeList(uint8_t readerIndex)
   for (uint8_t pinId = 0; pinId < pinTable.size(); pinId++) {
     if (pinChange[readerIndex]->get(pinId)) {
       list.push_back( { pinId, pinTable[pinId].getConnection() });
-      pinChange[readerIndex]->set(pinId, false);
+      pinChange[readerIndex]->set(pinId, false);  // We have read the change
     }
   }
 
   return list;
+}
+
+bool pinMapper_t::getNextConnectionChange(connectionChangeEvent_t &event, uint8_t readerIndex)
+{
+  for (uint8_t pinId = 0; pinId < pinTable.size(); pinId++) {
+    if (pinChange[readerIndex]->get(pinId)) {
+      event = { pinId, pinTable[pinId].getConnection() };
+      pinChange[readerIndex]->set(pinId, false);  // We have read the change
+      return true;
+    }
+  }  
+
+  return false;
 }
 
 void pinMapper_t::serialOut(uint8_t bitNumber)
