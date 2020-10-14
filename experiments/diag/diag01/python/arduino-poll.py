@@ -7,7 +7,7 @@ import smbus
 bus = smbus.SMBus(1)    # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
 modules = [ 4 ];
 
-changesMaxSize = 4*3;	// Up to 4 changes
+changesMaxSize = 4*3    # Up to 4 changes
 
 I2C_TAG_ANALOG_VALUE   = 0b00000000
 I2C_TAG_DIGITAL_VALUE  = 0b01000000
