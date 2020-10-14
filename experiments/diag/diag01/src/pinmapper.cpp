@@ -64,6 +64,21 @@ valueChangeList_t pinMapper_t::getValueChangeList(uint8_t readerIndex)
   return list;
 }
 
+void pinMapper_t::requestFullState()
+{
+  for (uint8_t pinId = 0; pinId < pinTable.size(); pinId++) {
+    switch (pinType) {
+      case socketInput:
+        // Force state change only if connected
+        if (pinTable[pinId].getConnection().isConnected) pinChange[0]->set(pinId, true);
+        break;
+      default:
+        pinChange[0]->set(pinId, true);  // Force state change
+        break;
+    }
+  }
+}
+
 bool pinMapper_t::getNextValueChange(valueChangeEvent_t &event, uint8_t readerIndex)
 {
   for (uint8_t pinId = 0; pinId < pinTable.size(); pinId++) {

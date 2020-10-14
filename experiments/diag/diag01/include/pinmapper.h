@@ -49,6 +49,8 @@ class pinMapper_t {
     bool getNextValueChange(valueChangeEvent_t &event, uint8_t readerIndex = 0);
     bool getNextConnectionChange(connectionChangeEvent_t &event, uint8_t readerIndex = 0);
 
+    void requestFullState();  // Set all input state to change, used upon I2C client startup
+
     // Debug functions
     void dumpPins(bool showValues);         // Dump value or arduinoPin of all pins to console
     void dumpChanges();                     // Dump only pins that has changed

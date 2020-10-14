@@ -227,6 +227,13 @@ void ModuleClass::dumpChanges()
   mapTable[socketInput]->dumpChanges();
 }
 
+void ModuleClass::requestFullState()
+{
+  mapTable[analogInput]->requestFullState();
+  mapTable[digitalInput]->requestFullState();
+  mapTable[socketInput]->requestFullState();
+}
+
 bool ModuleClass::getNextConnectionChange(connectionChangeEvent_t &event)
 {
   return mapTable[socketInput]->getNextConnectionChange(event);

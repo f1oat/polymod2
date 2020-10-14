@@ -59,6 +59,8 @@ class ModuleClass {
     bool getNextAnalogInputChange(valueChangeEvent_t &event);
     bool getNextDigitalInputChange(valueChangeEvent_t &event);
 
+    void requestFullState();
+
     // Debug methods
     
     void dumpValues();

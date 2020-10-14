@@ -23,6 +23,9 @@ def testConnections():
 def configureMessageSize():
 	bus.write_i2c_block_data(0, 32, [ changesMaxSize ])
 
+def requestFullState():
+	bus.write_byte_data(0, 2, 0)
+
 def getChanges():
 	for addr in modules:
 		pdu = bus.read_i2c_block_data(addr, 1, changesMaxSize) # Offset=1 means get list of changes
@@ -61,6 +64,7 @@ if __name__ == "__main__":
 	while True:
 		try:
 			configureMessageSize()
+			requestFullState()
 			while True:
 				testConnections()
 				getChanges()

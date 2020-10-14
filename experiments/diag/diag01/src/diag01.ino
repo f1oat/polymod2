@@ -103,22 +103,24 @@ void receiveEvent(int howMany)
   switch (message[0]) {
     case 0:   // Tick message
       tickNum = message[1];
-      if (tickNum > 32) Serial.println("bad tickNum");
+      if (tickNum > 32) Serial.println(F("I2C: bad tickNum"));
       Module.stepConnections(tickNum);
       I2C_stats.stepConnectionsCount++;
       break;
     case 1:   // changes reporting
       break;
+    case 2:   // resend all states
+      Serial.println(F("I2C: request full state"));
+      Module.requestFullState();
+      break;
     case 32:  // Configure I2C message size
       I2C_maxSize = message[1];
-      xprintf(F("Setting I2C max size to %d\n"), I2C_maxSize);
+      xprintf(F("I2C: setting max size to %d\n"), I2C_maxSize);
       break;
     default:  // Space for other message types
       break;
   }
 }
-
-
 
 #define I2C_WRITE(b) { I2C_tx_len++; Wire.write(b); }
 
