@@ -83,14 +83,11 @@ void loop() {
 }
 
 uint8_t message[8];
+uint8_t I2C_tx_len = 0;
+uint8_t I2C_maxSize = 32;
+
 
 // The following default values can be altered by writing to I2C register 32
-
-struct {
-  uint8_t connectionReporting = 32;
-  uint8_t analogReporting = 32;
-  uint8_t digitalReporting = 32;
-} I2C_maxSize;
 
 void receiveEvent(int howMany) 
 {
@@ -110,106 +107,88 @@ void receiveEvent(int howMany)
       Module.stepConnections(tickNum);
       I2C_stats.stepConnectionsCount++;
       break;
-    case 1:   // Connections reporting
-      break;
-    case 2:   // Analog inputs reporting
-      break;
-    case 3:   // Digital inputs reporting
+    case 1:   // changes reporting
       break;
     case 32:  // Configure I2C message size
-      I2C_maxSize.connectionReporting = message[1];
-      I2C_maxSize.analogReporting = message[2];
-      I2C_maxSize.digitalReporting = message[3];
-      xprintf(F("Setting I2C max size to %d %d %d\n"), 
-              I2C_maxSize.connectionReporting,
-              I2C_maxSize.analogReporting,
-              I2C_maxSize.digitalReporting);
+      I2C_maxSize = message[1];
+      xprintf(F("Setting I2C max size to %d\n"), I2C_maxSize);
       break;
     default:  // Space for other message types
       break;
   }
 }
 
-#define I2C_WRITE(b) { I2C_len++; Wire.write(b); }
-#define I2C_CONNECTIONS_MAX_SIZE 32
+
+
+#define I2C_WRITE(b) { I2C_tx_len++; Wire.write(b); }
+
+#define I2C_TAG_ANALOG_VALUE   0b00000000
+#define I2C_TAG_DIGITAL_VALUE  0b01000000
+#define I2C_TAG_CONNECTION     0b10000000
+#define I2C_TAG_END            0b11111111
 
 // For connections, reporting the format is a list of 3 bytes long records, ended by 0xFF
-// record[0] = from moduleId + bit 7 = connection
-// record[1] = from pinId
-// record[2] = to pinId (this module is the connection destination)
+// record[0] = to pinId + I2C_TAG_CONNECTION
+// record[1] = from moduleId + bit 7 = connection
+// record[2] = from pinId
 // moduleId should be <= 126
+// pinId should be < 63
 
 void reportConnections()
 {
-  uint8_t I2C_len = 0;
   
-  while (I2C_len < I2C_maxSize.connectionReporting - 3) {  // The total I2C message size is limited to 32 bytes
+  while (I2C_tx_len < I2C_maxSize - 3) {
     connectionChangeEvent_t event;
     if (!Module.getNextConnectionChange(event)) break;  // No more connection change to send over I2C
+    I2C_WRITE(event.pinId | I2C_TAG_CONNECTION);
     I2C_WRITE(event.from.moduleId + (event.from.isConnected ? 0x80 : 00));
     I2C_WRITE(event.from.pinId);
-    I2C_WRITE(event.pinId);
   }
-
-  // End of list marker, if enough room
-  if (I2C_len < 32) I2C_WRITE(0xFF);
-  if (I2C_len < 32) I2C_WRITE(0xFF);
 }
 
 // For analog values, reporting the format is a list of 3 bytes long records, ended by 0xFF
-// record[0] = pinId (or 0xFF for end of list)
+// record[0] = pinId | I2C_TAG_ANALOG_VALUE
 // record[1] = new value high 8 bits
 // record[2] = new value low 8 bits
-// pinID should be <= 254
+// pinId should be < 63
 
 void reportAnalogInputs()
-{
-  uint8_t I2C_len = 0;
-  
-  while (I2C_len < I2C_maxSize.analogReporting - 3) {  // The total I2C message size is limited to 32 bytes
+{ 
+  while (I2C_tx_len < I2C_maxSize - 3) {
     valueChangeEvent_t event;
     if (!Module.getNextAnalogInputChange(event)) break;  // No more connection change to send over I2C
-    I2C_WRITE(event.pinId);
+    I2C_WRITE(event.pinId | I2C_TAG_ANALOG_VALUE);
     I2C_WRITE(highByte(event.newValue));
     I2C_WRITE(lowByte(event.newValue));
   }
-
-  // End of list marker, if enough room
-  if (I2C_len < 32) I2C_WRITE(0xFF);
-  if (I2C_len < 32) I2C_WRITE(0xFF);
 }
 
 // For digital values, reporting the format is a list of 2 bytes long records, ended by 0xFF
-// record[0] = pinId (or 0xFF for end of list)
+// record[0] = pinId | I2C_TAG_DIGITAL_VALUE
 // record[1] = value
-// pinID should be <= 254
+// pinId should be < 63
 
 void reportDigitalInputs()
-{
-  uint8_t I2C_len = 0;
-  
-  while (I2C_len < I2C_maxSize.digitalReporting - 2) {  // The total I2C message size is limited to 32 bytes
+{ 
+  while (I2C_tx_len < I2C_maxSize - 2) {
     valueChangeEvent_t event;
     if (!Module.getNextDigitalInputChange(event)) break;  // No more connection change to send over I2C
-    I2C_WRITE(event.pinId);
+    I2C_WRITE(event.pinId | I2C_TAG_DIGITAL_VALUE);
     I2C_WRITE(lowByte(event.newValue));
   }
-
-  // End of list marker, if enough room
-  if (I2C_len < 32) I2C_WRITE(0xFF);
-  if (I2C_len < 32) I2C_WRITE(0xFF);
 }
 
 void requestEvent()
 {
   I2C_stats.onRequestCount++;
+  if (message[0] != 1) return;
 
+  I2C_tx_len = 0;
 
-  switch (message[0]) {
-    case 1: reportConnections(); break;
-    case 2: reportAnalogInputs(); break;
-    case 3: reportDigitalInputs(); break;
-    default: break;
-  }
+  reportAnalogInputs();
+  reportDigitalInputs();
+  reportConnections();
 
+  if (I2C_tx_len < I2C_maxSize) I2C_WRITE(I2C_TAG_END);
+  if (I2C_tx_len < I2C_maxSize) I2C_WRITE(I2C_TAG_END);
 }

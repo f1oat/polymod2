@@ -5,7 +5,7 @@
 #include "console.h"
 
 uint8_t pinHandler_t::debounceDelay = 5;      // Delay before successive reads of digital input for debouncing
-uint8_t pinHandler_t::denoiseFilterCoeff = 2; // Anlog filter constant will 1<<analogFilterCoeff 
+uint8_t pinHandler_t::denoiseFilterCoeff = 2; // Actual anolog IIR filter constant will be 1<<analogFilterCoeff 
 uint8_t pinHandler_t::denoiseThreshold = 6;   // Threshold for change detection of analog inputs
 
 pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId)
