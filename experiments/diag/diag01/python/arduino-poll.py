@@ -1,3 +1,11 @@
+# OSC messages format
+# 
+# /matrix/reset
+# /matrix/connect <dst_module> <dst_port> <src_module> <src_port>
+# /matrix/disconnect <dst_module> <dst_port> <src_module> <src_port>
+# /module/<module>/analog/<channel> <value>
+# /module/<module>/digital/<channel> <0|1>
+
 import sys
 import time
 
@@ -31,17 +39,20 @@ def getChanges():
 		pdu = bus.read_i2c_block_data(addr, 1, changesMaxSize) # Offset=1 means get list of changes
 		ptr = 0
 		while (pdu[ptr] != I2C_TAG_END and ptr < changesMaxSize):
+			oscMessage = []
 			tag = pdu[ptr] & I2C_TAG_MASK
 			if (tag == I2C_TAG_ANALOG_VALUE):
 				pinId = pdu[ptr] & ~I2C_TAG_MASK
 				value = (pdu[ptr+1] << 8) + pdu[ptr+2]
 				ptr += 3
-				print("Analog m%dp%d = %d" % (addr, pinId, value))
+				#print("Analog m%dp%d = %d" % (addr, pinId, value))
+				oscMessage = [ "/module/analog", [addr, pinId, value/1024.0] ]
 			elif (tag == I2C_TAG_DIGITAL_VALUE):
 				pinId = pdu[ptr] & ~I2C_TAG_MASK
 				value = pdu[ptr+1]
 				ptr += 2
-				print("Digital m%dp%d = %d" % (addr, pinId, value))
+				#print("Digital m%dp%d = %d" % (addr, pinId, value))
+				oscMessage = [ "/module/digital", [ addr, pinId, value ] ]
 			elif (tag == I2C_TAG_CONNECTION):
 				toModule = addr
 				toPort = pdu[ptr] & ~I2C_TAG_MASK
@@ -49,17 +60,17 @@ def getChanges():
 				connected = pdu[ptr+1] & 0x80
 				fromPort = pdu[ptr+2]
 				ptr += 3
-				if (connected): print("connected: m%dp%d -> m%dp%d" % (fromModule, fromPort, toModule, toPort))
-				else: print("disconnected: m%dp%d -> m%dp%d" % (fromModule, fromPort, toModule, toPort))
-
-
+				#if (connected): print("connected: m%dp%d -> m%dp%d" % (fromModule, fromPort, toModule, toPort))
+				#else: print("disconnected: m%dp%d -> m%dp%d" % (fromModule, fromPort, toModule, toPort))
+				if (connected): oscMessage = [ "/matrix/connect", [toModule, toPort, fromModule, fromPort] ]
+				else: 			oscMessage = [ "/matrix/disconnect" , [toModule, toPort, fromModule, fromPort] ]
+			if (oscMessage != []):
+				 print(oscMessage)
+				 client.send_message(oscMessage[0], oscMessage[1])
 
 if __name__ == "__main__":
 	client = udp_client.SimpleUDPClient('127.0.0.1', 9001)
-	#url = sys.argv[1]
-	#args = sys.argv[2:]
-	#args = list(map(int, args))
-	#client.send_message(url, args)
+	client.send_message("/matrix/reset", [])
 
 	while True:
 		try:
@@ -70,7 +81,7 @@ if __name__ == "__main__":
 				getChanges()
 		except OSError:
 			print("I2C error")
-			time.sleep(1);
+			time.sleep(1)
 
 		time.sleep(1e-3)
 
