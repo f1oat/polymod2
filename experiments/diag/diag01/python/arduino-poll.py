@@ -8,8 +8,16 @@
 
 import sys
 import time
+from typing import List, Any
 
 from pythonosc import udp_client
+from pythonosc import dispatcher
+
+from pythonosc.osc_server import AsyncIOOSCUDPServer
+from pythonosc.osc_server import BlockingOSCUDPServer
+from pythonosc.dispatcher import Dispatcher
+import asyncio
+
 import smbus
 
 bus = smbus.SMBus(1)    # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
@@ -23,20 +31,26 @@ I2C_TAG_CONNECTION     = 0b10000000
 I2C_TAG_END            = 0b11111111
 I2C_TAG_MASK           = 0b11000000
 
+I2C_TICK               = 0
+I2C_GET_CHANGES        = 1
+I2C_SET_CONFIG         = 32
+I2C_REQUEST_FULLSTATE  = 2
+I2C_WRITE_DIGITAL	   = 3
+
 def testConnections():
 	for tickNum in range(0, 32):
-		bus.write_byte_data(0, 0, tickNum)	# Broadcast, offset=0 means tick message
+		bus.write_byte_data(0, I2C_TICK, tickNum)
 	return
 
 def configureMessageSize():
-	bus.write_i2c_block_data(0, 32, [ changesMaxSize ])
+	bus.write_i2c_block_data(0, I2C_SET_CONFIG, [ changesMaxSize ])
 
 def requestFullState():
-	bus.write_byte_data(0, 2, 0)
+	bus.write_byte_data(0, I2C_REQUEST_FULLSTATE, 0)
 
 def getChanges():
 	for addr in modules:
-		pdu = bus.read_i2c_block_data(addr, 1, changesMaxSize) # Offset=1 means get list of changes
+		pdu = bus.read_i2c_block_data(addr, I2C_GET_CHANGES, changesMaxSize)
 		ptr = 0
 		while (pdu[ptr] != I2C_TAG_END and ptr < changesMaxSize):
 			oscMessage = []
@@ -68,25 +82,56 @@ def getChanges():
 				 print(oscMessage)
 				 client.send_message(oscMessage[0], oscMessage[1])
 
-if __name__ == "__main__":
-	ip = '127.0.0.1'
-	if (len(sys.argv) > 1):
-		ip = sys.argv[1]
-	client = udp_client.SimpleUDPClient(ip, 9001)
-	client.send_message("/matrix/reset", [])
-	print("Sending OSC message to %s" % (ip))
-	
-	while True:
-		try:
-			configureMessageSize()
-			requestFullState()
-			while True:
-				testConnections()
-				getChanges()
-		except OSError:
-			print("I2C error")
-			time.sleep(1)
+def digitalOutputHandler(address: str, *args: List[Any]) -> None:
+	print(address, args)
+	bus.write_i2c_block_data(args[0], I2C_WRITE_DIGITAL, [ args[1], args[2] ])
 
-		time.sleep(1e-3)
+def trashHandler(address: str, *args: List[Any]) -> None:
+	print(address, args)
+
+if __name__ == "__main__":
+	server_ip = '0.0.0.0'
+	client_ip = '127.0.0.1'
+
+	if (len(sys.argv) > 1):
+		client_ip = sys.argv[1]
+
+	# Init the client side of OSC
+
+	client = udp_client.SimpleUDPClient(client_ip, 9001)
+	client.send_message("/matrix/reset", [])
+	print("Sending OSC message to %s" % (client_ip))
+	
+	# Init the server side of OSC
+
+	dispatcher = dispatcher.Dispatcher()
+	dispatcher.map("/module/digital", digitalOutputHandler)
+	dispatcher.set_default_handler(trashHandler)
+
+	#server = BlockingOSCUDPServer((server_ip, 9001), dispatcher)
+	#server.serve_forever()  # Blocks forever
+
+	async def loop():
+		while True:
+			try:
+				configureMessageSize()
+				requestFullState()
+				while True:
+					testConnections()
+					getChanges()
+					await asyncio.sleep(0)
+			except OSError:
+				print("I2C error")
+				await asyncio.sleep(1)
+
+	async def init_main():
+		server = AsyncIOOSCUDPServer((server_ip, 9001), dispatcher, asyncio.get_event_loop())
+		transport, protocol = await server.create_serve_endpoint() 
+		print("Serving on %s" % (server_ip))
+		await loop() 
+		transport.close()
+
+	asyncio.run(init_main())
+
 
 	
