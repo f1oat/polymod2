@@ -7,6 +7,8 @@
 #include "console.h"
 #include "sysinfo.h"
 
+extern bool trace_mode;
+
 void xprintf(const __FlashStringHelper* fmt, ...) {
   char buf[64];
   va_list args;
@@ -77,6 +79,7 @@ static void help() {
     Serial.println(F("c:                  print current configuration"));
     Serial.println(F("v:                  print pins value"));
     Serial.println(F("i:                  print system informations"));
+    Serial.println(F("t:                  toggle trace"));
     Serial.println(F("R:                  restart module"));
     Serial.println(F("m <moduId>:         set Module ID"));
     Serial.println(F("ai <pin> <pin> ...: define analog inputs"));
@@ -156,6 +159,13 @@ static void restartModule()
     }
 }
 
+void toggleTrace()
+{
+    trace_mode = !trace_mode;
+    if (trace_mode) Serial.println("Trace ON");
+    else Serial.println("Trace OFF");
+}
+
 void pollCLI()
 {
     if (!Serial.available()) return;
@@ -184,6 +194,9 @@ void pollCLI()
             break;
         case 'R':
             restartModule();
+        case 't':
+            toggleTrace();
+            break;
         default:
             help();
             break;
