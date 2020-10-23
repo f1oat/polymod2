@@ -60,9 +60,12 @@ bool pinHandler_t::updateValue()
     break;
   case analogInput:
     {
+      uint16_t newValue = analogRead(pinArduino);
       // Apply IIR filter with coeff 0.25
+      cli();
       value.currentValue -= value.currentValue >> denoiseFilterCoeff;
-      value.currentValue += analogRead(pinArduino);
+      value.currentValue += newValue;
+      sei();
       int delta = abs((int)value.prevValue - (int)value.currentValue);
       if (delta > denoiseThreshold) {
         value.prevValue = value.currentValue;
