@@ -49,8 +49,14 @@ class ModuleClass {
     void stepConnections(uint8_t stepNumber);
     void detectConnections();
 
-    uint16_t getValue(pinType_t t, int id) { return mapTable[t]->pinTable[id].getValue(); };
-    void setValue(pinType_t t, int id, uint16_t value) { mapTable[t]->pinTable[id].setBitValue(value); };
+    uint16_t getValue(pinType_t t, uint8_t id) {
+      return (id < mapTable[t]->pinTable.size()) ? mapTable[t]->pinTable[id].getValue() : 0; 
+    };
+    
+    void setValue(pinType_t t, uint8_t id, uint16_t value) {
+      if (id < mapTable[t]->pinTable.size()) mapTable[t]->pinTable[id].setBitValue(value);
+    };
+    
     uint8_t getNbPins(pinType_t t) { return mapTable[t] ? mapTable[t]->pinTable.size() : 0; }
 
     // get changes

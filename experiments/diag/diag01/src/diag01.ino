@@ -69,7 +69,7 @@ void loop() {
   if (trace_mode) Module.dumpChanges();
 
   // Toggle a LED to check digital output feature is working
-  if ((counter % 25) == 0) Module.blinkDigitalOutputs();
+  //if ((counter % 25) == 0) Module.blinkDigitalOutputs();
 
   // Check memory usage every 100ms
   if ((counter % 10) == 0) sysinfo.checkMemory();
@@ -115,11 +115,16 @@ void receiveEvent(int howMany)
       Serial.println(F("I2C: request full state"));
       Module.requestFullState();
       break;
+    case 3: // write digital 
+      if (trace_mode) xprintf(F("I2C: set digital %d %d\n"), message[1], message[2]);
+      Module.setValue(digitalOutput, message[1], message[2]);
+      break;
     case 32:  // Configure I2C message size
       I2C_maxSize = message[1];
       xprintf(F("I2C: setting max size to %d\n"), I2C_maxSize);
       break;
     default:  // Space for other message types
+      xprintf(F("I2C: unknown message type %d\n"), message[0]);
       break;
   }
 }
