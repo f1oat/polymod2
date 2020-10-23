@@ -54,6 +54,7 @@ void setup() {
 
 uint16_t counter = 0;
 bool i2c_active = false;
+bool trace_mode = true;
 
 void loop() {
   // Poll socket connections every 100 ms
@@ -65,7 +66,7 @@ void loop() {
   Module.updateAll(); 
 
   // Dump all changes (inputs level or socket connection);
-  Module.dumpChanges();
+  if (trace_mode) Module.dumpChanges();
 
   // Toggle a LED to check digital output feature is working
   if ((counter % 25) == 0) Module.blinkDigitalOutputs();
@@ -93,6 +94,7 @@ void receiveEvent(int howMany)
 {
   byte tickNum;
   I2C_stats.onReceiveCount++;
+  if (!i2c_active) trace_mode = false; // On first I2C activation, disable trace changes on console
   i2c_active = true;
 
   for (uint8_t i=0; i<howMany ; i++) {
