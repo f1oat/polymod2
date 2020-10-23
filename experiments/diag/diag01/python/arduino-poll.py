@@ -3,8 +3,8 @@
 # /matrix/reset
 # /matrix/connect <dst_module> <dst_port> <src_module> <src_port>
 # /matrix/disconnect <dst_module> <dst_port> <src_module> <src_port>
-# /module/<module>/analog/<channel> <value>
-# /module/<module>/digital/<channel> <0|1>
+# /module/analog <module> <channel> <value>
+# /module/digital <module> <channel> <0|1>
 
 import sys
 import time
@@ -69,9 +69,13 @@ def getChanges():
 				 client.send_message(oscMessage[0], oscMessage[1])
 
 if __name__ == "__main__":
-	client = udp_client.SimpleUDPClient('127.0.0.1', 9001)
+	ip = '127.0.0.1'
+	if (len(sys.argv) > 1):
+		ip = sys.argv[1]
+	client = udp_client.SimpleUDPClient(ip, 9001)
 	client.send_message("/matrix/reset", [])
-
+	print("Sending OSC message to %s" % (ip))
+	
 	while True:
 		try:
 			configureMessageSize()
