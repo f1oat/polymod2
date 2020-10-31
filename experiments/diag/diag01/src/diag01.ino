@@ -83,12 +83,18 @@ void loop() {
   pollCLI();
 }
 
+#define I2C_TICK               0
+#define I2C_GET_CHANGES        1
+#define I2C_REQUEST_FULLSTATE  2
+#define I2C_WRITE_DIGITAL	     3
+#define I2C_SET_CONFIG         32
+
 uint8_t message[8];
 uint8_t I2C_tx_len = 0;
-uint8_t I2C_maxSize = 32;
-
 
 // The following default values can be altered by writing to I2C register 32
+
+uint8_t I2C_maxSize = 32;
 
 void receiveEvent(int howMany) 
 {
@@ -103,23 +109,23 @@ void receiveEvent(int howMany)
   }
 
   switch (message[0]) {
-    case 0:   // Tick message
+    case I2C_TICK:  // Tick message
       tickNum = message[1];
       if (tickNum > 32) Serial.println(F("I2C: bad tickNum"));
       Module.stepConnections(tickNum);
       I2C_stats.stepConnectionsCount++;
       break;
-    case 1:   // changes reporting
+    case I2C_GET_CHANGES: // changes reporting
       break;
-    case 2:   // resend all states
+    case I2C_REQUEST_FULLSTATE:   // resend all states
       Serial.println(F("I2C: request full state"));
       Module.requestFullState();
       break;
-    case 3: // write digital 
+    case I2C_WRITE_DIGITAL: // write digital 
       if (trace_mode) xprintf(F("I2C: set digital %d %d\n"), message[1], message[2]);
       Module.setValue(digitalOutput, message[1], message[2]);
       break;
-    case 32:  // Configure I2C message size
+    case I2C_SET_CONFIG:  // Configure I2C message size
       I2C_maxSize = message[1];
       xprintf(F("I2C: setting max size to %d\n"), I2C_maxSize);
       break;

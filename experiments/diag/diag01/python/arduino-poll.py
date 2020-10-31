@@ -1,9 +1,16 @@
 # OSC messages format
 # 
+# *** Emitted by the control panel:
+#
 # /matrix/reset
 # /matrix/connect <dst_module> <dst_port> <src_module> <src_port>
 # /matrix/disconnect <dst_module> <dst_port> <src_module> <src_port>
 # /module/analog <module> <channel> <value>
+# /module/digital <module> <channel> <0|1>
+# 
+# *** Received by the control panel:
+#
+# /reset
 # /module/digital <module> <channel> <0|1>
 
 import sys
@@ -25,17 +32,20 @@ modules = [ 4 ];
 
 changesMaxSize = 4*3    # Up to 4 changes
 
+# Received I2C messages
 I2C_TAG_ANALOG_VALUE   = 0b00000000
 I2C_TAG_DIGITAL_VALUE  = 0b01000000
 I2C_TAG_CONNECTION     = 0b10000000
 I2C_TAG_END            = 0b11111111
 I2C_TAG_MASK           = 0b11000000
 
+# Transmitted I2C messages
+
 I2C_TICK               = 0
 I2C_GET_CHANGES        = 1
-I2C_SET_CONFIG         = 32
 I2C_REQUEST_FULLSTATE  = 2
 I2C_WRITE_DIGITAL	   = 3
+I2C_SET_CONFIG         = 32
 
 def testConnections():
 	for tickNum in range(0, 32):
@@ -86,6 +96,11 @@ def digitalOutputHandler(address: str, *args: List[Any]) -> None:
 	print(address, args)
 	bus.write_i2c_block_data(args[0], I2C_WRITE_DIGITAL, [ args[1], args[2] ])
 
+def resetHandler(address: str, *args: List[Any]) -> None:
+	print("reset")
+	client.send_message("/matrix/reset", [])
+	requestFullState()
+
 def trashHandler(address: str, *args: List[Any]) -> None:
 	print(address, args)
 
@@ -106,6 +121,7 @@ if __name__ == "__main__":
 
 	dispatcher = dispatcher.Dispatcher()
 	dispatcher.map("/module/digital", digitalOutputHandler)
+	dispatcher.map("/reset", resetHandler)
 	dispatcher.set_default_handler(trashHandler)
 
 	#server = BlockingOSCUDPServer((server_ip, 9001), dispatcher)
