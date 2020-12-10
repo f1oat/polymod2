@@ -9,7 +9,7 @@ ModuleClass Module;
 
 ModuleClass::ModuleClass()
 {
-  vector<pinType_t> pinTypeList = {analogInput, digitalInput, digitalOutput, socketInput, socketOutput};
+  vector<pinType_t> pinTypeList = {analogInput, pwmOutput, digitalInput, digitalOutput, socketInput, socketOutput};
 
   for (uint8_t i = 0; i < pinTypeList.size(); i++)
   {
@@ -207,9 +207,11 @@ void ModuleClass::dumpPins(boolean showValues)
     xprintf(F("   %02d"), i);
   Serial.println();
 
-  for (it = mapTable.begin(); it != mapTable.end(); it++)
+  vector<pinType_t> pinTypeList = {analogInput, pwmOutput, digitalInput, digitalOutput, socketInput, socketOutput};
+
+  for (uint8_t i = 0; i < pinTypeList.size(); i++)
   {
-    it->second->dumpPins(showValues);
+    mapTable[pinTypeList[i]]->dumpPins(showValues);
   }
   Serial.println();
 }

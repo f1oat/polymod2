@@ -30,6 +30,10 @@ pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId)
   case analogInput:
     value.currentValue = analogRead(pinArduino) << denoiseFilterCoeff;
     break;
+  case pwmOutput:
+    value.currentValue = 0;
+    analogWrite(pinArduino, 0);
+    break;
   default:
     break;
   }
@@ -58,6 +62,8 @@ bool pinHandler_t::updateValue()
   case socketInput:
     value.currentValue = digitalRead(pinArduino);
     break;
+  case pwmOutput:
+    break;
   case analogInput:
     {
       uint16_t newValue = analogRead(pinArduino);
@@ -80,13 +86,16 @@ bool pinHandler_t::updateValue()
   return false;
 }
 
-void pinHandler_t::setBitValue(uint8_t value)
+void pinHandler_t::setValue(uint8_t v)
 {
   switch (pinType) {
   case digitalOutput:
   case socketOutput:
-    digitalWrite(pinArduino, value);
+    digitalWrite(pinArduino, v);
     break;
+  case pwmOutput:
+    value.currentValue = v;
+    analogWrite(pinArduino, v);
   case digitalInput:
   case socketInput:
   case analogInput:

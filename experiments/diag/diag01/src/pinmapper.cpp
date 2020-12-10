@@ -142,6 +142,7 @@ void pinMapper_t::printPinType()
 {
     switch (pinType) {
     case analogInput:    Serial.print(F("   Analog Input")); break;
+    case pwmOutput:      Serial.print(F("     PWM Output")); break;
     case digitalInput:   Serial.print(F("  Digital Input")); break;
     case digitalOutput:  Serial.print(F(" Digital Output")); break;
     case socketInput:    Serial.print(F("   Socket Input")); break;

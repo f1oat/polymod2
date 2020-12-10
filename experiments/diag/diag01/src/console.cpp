@@ -95,7 +95,9 @@ static void help() {
     Serial.println(F("R:                  restart module"));
     Serial.println(F("m <moduId>:         set Module ID"));
     Serial.println(F("o <pin> <value> :   set digital output pin value"));
+    Serial.println(F("p <pin> <value> :   set pwm output pin value"));
     Serial.println(F("ai <pin> <pin> ...: define analog inputs"));
+    Serial.println(F("ao <pin> <pin> ...: define pwm ouputs"));
     Serial.println(F("di <pin> <pin> ...: define digital inputs"));
     Serial.println(F("do <pin> <pin> ...: define digital outputs"));
     Serial.println(F("si <pin> <pin> ...: define socket inputs"));
@@ -109,7 +111,7 @@ static void definePins(String cmdline)
     
     switch (cmdline[0]) {
         case 'a':
-            pinType = analogInput;
+            pinType = (cmdline[1] == 'i') ? analogInput : pwmOutput;
             break;
         case 'd':
             pinType = (cmdline[1] == 'i') ? digitalInput : digitalOutput;
@@ -124,7 +126,7 @@ static void definePins(String cmdline)
     else Serial.println(F("configuration updated"));
 }
 
-static void digitalOuput(String cmdline)
+static void setOutput(String cmdline)
 {
     char *buf = strdup(cmdline.c_str());
 
@@ -133,8 +135,17 @@ static void digitalOuput(String cmdline)
     if (apin && avalue) {
         uint8_t pin =  atoi(apin);
         uint8_t value = atoi(avalue);
-        xprintf(F("output[%d] <= %d\n"), pin, value);
-        Module.setValue(digitalOutput, pin, value);
+        switch (buf[0]) {
+            case 'o':
+                xprintf(F("digitalOutput[%d] <= %d\n"), pin, value);
+                Module.setValue(digitalOutput, pin, value);
+                break;
+            case 'p':
+                xprintf(F("pwmOutput[%d] <= %d\n"), pin, value);
+                Module.setValue(pwmOutput, pin, value);
+                break;
+        }
+
     }
     else {
         Serial.println(F("syntax error"));
@@ -208,7 +219,8 @@ void pollCLI()
             definePins(cmdline);
             break;
         case 'o':
-            digitalOuput(cmdline);
+        case 'p':
+            setOutput(cmdline);
             break;
         case 'v':
             Module.dumpValues();
