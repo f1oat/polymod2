@@ -3,17 +3,29 @@
 #include <CLI.h>
 #include <Wire.h>
 
+#include "board.h"
 #include "module.h"
 #include "console.h"
 #include "sysinfo.h"
 
 extern bool trace_mode;
 
-void xprintf(const __FlashStringHelper* fmt, ...) {
+#ifndef NO_FLASH_STRING
+void xprintf(const __FlashStringHelper* fmt, ...)
+#else
+void xprintf(const char* fmt, ...)
+#endif
+{
   char buf[64];
   va_list args;
   va_start(args, fmt);
+  
+  #ifndef NO_FLASH_STRING
   vsnprintf_P(buf, sizeof(buf), (const char *)fmt, args);
+  #else
+  vsnprintf(buf, sizeof(buf), (const char *)fmt, args);
+  #endif
+
   va_end(args);
   Serial.print(buf);
 }

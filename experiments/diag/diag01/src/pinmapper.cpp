@@ -1,3 +1,4 @@
+#include "board.h"
 #include "module.h"
 #include "console.h"
 

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "sysinfo.h"
 
+#include "board.h"
 #include "console.h"
 
 int sysinfoClass::freeRam()

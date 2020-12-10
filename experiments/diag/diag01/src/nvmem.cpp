@@ -1,3 +1,4 @@
+#include "board.h"
 #include "nvmem.h"
 #include "console.h"
 

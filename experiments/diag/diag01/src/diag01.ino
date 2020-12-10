@@ -1,6 +1,7 @@
 #include <ArduinoSTL.h>
 #include <Wire.h>
 
+#include "board.h"
 #include "module.h"
 #include "console.h"
 #include "sysinfo.h"
@@ -15,8 +16,13 @@ struct {
 } I2C_stats;
 
 void setup_I2C() {
+
+  #if defined(ATMEGA_4809)
+  Wire.begin(Module.getModuleId(), true); // Activate broadcast mode
+  #else
   Wire.begin(Module.getModuleId());
   TWAR = (Module.getModuleId() << 1) | 1; // enable broadcasts to be received http://www.gammon.com.au/i2c
+  #endif
   Wire.onReceive(receiveEvent);
   Wire.onRequest(requestEvent);
 }
@@ -31,11 +37,11 @@ void I2C_dump_stats() {
 void defaultConfig()
 {
   Module.setModuleId(0x04);
-  Module.definePins(analogInput, {A0, A1, A2, A3, A6, A7});
-  Module.definePins(digitalInput,{2, 3});
-  Module.definePins(digitalOutput,{13});
-  Module.definePins(socketInput,{4, 5, 6, 7});
-  Module.definePins(socketOutput,{8, 9, 10});
+  //Module.definePins(analogInput, {A0, A1, A2, A3, A6, A7});
+  //Module.definePins(digitalInput,{2, 3});
+  //Module.definePins(digitalOutput,{13});
+  //Module.definePins(socketInput,{4, 5, 6, 7});
+  //Module.definePins(socketOutput,{8, 9, 10});
 }
 
 void setup() {
@@ -50,6 +56,9 @@ void setup() {
   sysinfo.dumpStats();
   Module.dumpConfig();
   setup_I2C();
+  #if defined(ATMEGA_4809)
+  analogReference(VDD);
+  #endif
 }
 
 uint16_t counter = 0;

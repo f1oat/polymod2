@@ -1,5 +1,6 @@
 #include <assert.h>
 
+#include "board.h"
 #include "console.h"
 #include "module.h"
 #include "nvmem.h"
@@ -153,7 +154,11 @@ int ModuleClass::parsePins(pinType_t t, String list)
       while (e < list.length() && list[e] != ' ')
         e++;
       String s = list.substring(b, e);
+      #ifdef ATMEGA_4809
+      uint8_t newPin = (s[0] == 'A') ? s.substring(1).toInt() : s.toInt();
+      #else
       uint8_t newPin = (s[0] == 'A') ? s.substring(1).toInt() + A0 : s.toInt();
+      #endif
       pins.push_back(newPin);
       b = e + 1;
     }
