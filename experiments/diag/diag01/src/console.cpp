@@ -94,6 +94,7 @@ static void help() {
     Serial.println(F("t:                  toggle trace"));
     Serial.println(F("R:                  restart module"));
     Serial.println(F("m <moduId>:         set Module ID"));
+    Serial.println(F("o <pin> <value> :   set digital output pin value"));
     Serial.println(F("ai <pin> <pin> ...: define analog inputs"));
     Serial.println(F("di <pin> <pin> ...: define digital inputs"));
     Serial.println(F("do <pin> <pin> ...: define digital outputs"));
@@ -119,8 +120,25 @@ static void definePins(String cmdline)
     }
 
     int rc = Module.parsePins(pinType, cmdline.substring(2));
-    if (rc) Serial.println(F("\nsyntax error"));
-    else Serial.println(F("\nconfiguration updated"));
+    if (rc) Serial.println(F("syntax error"));
+    else Serial.println(F("configuration updated"));
+}
+
+static void digitalOuput(String cmdline)
+{
+    char *buf = strdup(cmdline.c_str());
+
+    char *apin = strtok(buf+1, " ");
+    char *avalue = strtok(NULL, " ");
+    if (apin && avalue) {
+        uint8_t pin =  atoi(apin);
+        uint8_t value = atoi(avalue);
+        xprintf(F("output[%d] <= %d\n"), pin, value);
+        Module.setValue(digitalOutput, pin, value);
+    }
+    else {
+        Serial.println(F("syntax error"));
+    }
 }
 
 static void setModuleId(String cmdline)
@@ -188,6 +206,9 @@ void pollCLI()
         case 'a':
         case 's':
             definePins(cmdline);
+            break;
+        case 'o':
+            digitalOuput(cmdline);
             break;
         case 'v':
             Module.dumpValues();
