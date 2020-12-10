@@ -1,6 +1,8 @@
 {
     "files.associations": {
-        "complex": "cpp"
-    },
-    "C_Cpp.intelliSenseEngineFallback": "Disabled"
+        "iterator": "cpp",
+        "serstream": "cpp",
+        "functional": "cpp",
+        "type_traits": "cpp"
+    }
 }

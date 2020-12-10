@@ -15,6 +15,12 @@ pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId)
   this->pinArduino = pinArduino;
   this->connection.setId(pinId);
 
+  #ifdef ATMEGA_4809
+  bool isAnalog = (pinArduino >= PIN_PD0 &&  pinArduino <= PIN_PE3) || (pinArduino >= PIN_PF2 &&  pinArduino <= PIN_PF5);
+  #else
+  bool isAnalog = (pinArduino >= A0);
+  #endif
+
   switch (pinType) {
   case digitalInput:
   case socketInput:
@@ -23,7 +29,11 @@ pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId)
     break;
   case digitalOutput:
   case socketOutput:
-    assert(pinArduino < A0);  // Avoid using an analog pin as output
+    // Avoid using an analog pin as output
+    if (isAnalog) {
+      xprintf(F("pin %d: cannot configured as a digital output\n"), pinArduino);
+      break;
+    }
     pinMode(pinArduino, OUTPUT);
     digitalWrite(pinArduino, 0);
     break;
@@ -31,10 +41,16 @@ pinHandler_t::pinHandler_t(pinType_t pinType, uint8_t pinArduino, uint8_t pinId)
     value.currentValue = analogRead(pinArduino) << denoiseFilterCoeff;
     break;
   case pwmOutput:
+    if (!digitalPinHasPWM(pinArduino)) {
+      Serial.println(F("Invalid PWM pin"));
+      break;  
+    }
     value.currentValue = 0;
+    pinMode(pinArduino, OUTPUT);
     analogWrite(pinArduino, 0);
     break;
   default:
+    xprintf(F("Pin %d unknown type %d\n"), pinArduino, pinType);
     break;
   }
 

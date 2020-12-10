@@ -54,7 +54,7 @@ class ModuleClass {
     };
     
     void setValue(pinType_t t, uint8_t id, uint16_t value) {
-      if (id < mapTable[t]->pinTable.size()) mapTable[t]->pinTable[id].setBitValue(value);
+      if (id < mapTable[t]->pinTable.size()) mapTable[t]->pinTable[id].setValue(value);
     };
     
     uint8_t getNbPins(pinType_t t) { return mapTable[t] ? mapTable[t]->pinTable.size() : 0; }

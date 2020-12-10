@@ -9,7 +9,7 @@
 
 using namespace std;
 
-typedef enum { undefined=-1, analogInput, digitalInput, digitalOutput, socketInput, socketOutput } pinType_t;
+typedef enum { undefined=-1, analogInput, digitalInput, digitalOutput, socketInput, socketOutput, pwmOutput } pinType_t;
 
 typedef struct {
   uint8_t moduleId;
@@ -54,10 +54,14 @@ public:
 
   bool updateValue();   // Return true of value change
   uint16_t getValue();
-  void setBitValue(uint8_t value);
-
+  void setValue(uint8_t value);
+  
   uint8_t getPinArduino() { return pinArduino; };
+  #ifdef ATMEGA_4809
+  String stringPinArduino() { return (pinType == analogInput) ?  ('A' + String(pinArduino)) : String(pinArduino); };
+  #else
   String stringPinArduino() { return (pinArduino < A0) ? String(pinArduino) : 'A' + String(pinArduino-A0); };
+  #endif
 
   connection_t getConnection();
 

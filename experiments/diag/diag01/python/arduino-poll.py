@@ -141,7 +141,7 @@ if __name__ == "__main__":
 				await asyncio.sleep(1)
 
 	async def init_main():
-		server = AsyncIOOSCUDPServer((server_ip, 9001), dispatcher, asyncio.get_event_loop())
+		server = AsyncIOOSCUDPServer((server_ip, 9002), dispatcher, asyncio.get_event_loop())
 		transport, protocol = await server.create_serve_endpoint() 
 		print("Serving on %s" % (server_ip))
 		await loop() 

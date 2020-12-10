@@ -1,0 +1,34 @@
+// AUTOMATICALLY GENERATED FILE. PLEASE DO NOT MODIFY IT MANUALLY
+
+// PIO Unified Debugger
+//
+// Documentation: https://docs.platformio.org/page/plus/debugging.html
+// Configuration: https://docs.platformio.org/page/projectconf/section_env_debug.html
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug",
+            "executable": "p:/ELECTRO/Polymod/polymod2.git/experiments/diag/diag01/.pio/build/nanoatmega328new/firmware.elf",
+            "projectEnvName": "nanoatmega328new",
+            "toolchainBinDir": "C:/Users/f1oat/.platformio/packages/toolchain-atmelavr@1.50400.190710/bin",
+            "preLaunchTask": {
+                "type": "PlatformIO",
+                "task": "Pre-Debug (nanoatmega328new)"
+            },
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug (skip Pre-Debug)",
+            "executable": "p:/ELECTRO/Polymod/polymod2.git/experiments/diag/diag01/.pio/build/nanoatmega328new/firmware.elf",
+            "projectEnvName": "nanoatmega328new",
+            "toolchainBinDir": "C:/Users/f1oat/.platformio/packages/toolchain-atmelavr@1.50400.190710/bin",
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ]
+}
