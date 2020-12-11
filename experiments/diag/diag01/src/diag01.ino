@@ -18,6 +18,7 @@ struct {
 void setup_I2C() {
 
   #if defined(ATMEGA_4809)
+  Wire.pins(10,11);
   Wire.begin(Module.getModuleId(), true); // Activate broadcast mode
   #else
   Wire.begin(Module.getModuleId());
@@ -28,7 +29,7 @@ void setup_I2C() {
 }
 
 void I2C_dump_stats() {
-  xprintf(F("recv=%d, req=%d, step=%d\n"), 
+  xprintf(F("I2C: recv=%d, req=%d, step=%d\n"), 
     I2C_stats.onReceiveCount,
     I2C_stats.onRequestCount,
     I2C_stats.stepConnectionsCount);
@@ -96,6 +97,7 @@ void loop() {
 #define I2C_GET_CHANGES        1
 #define I2C_REQUEST_FULLSTATE  2
 #define I2C_WRITE_DIGITAL	     3
+#define I2C_WRITE_PWM	         4
 #define I2C_SET_CONFIG         32
 
 uint8_t message[8];
@@ -133,6 +135,10 @@ void receiveEvent(int howMany)
     case I2C_WRITE_DIGITAL: // write digital 
       if (trace_mode) xprintf(F("I2C: set digital %d %d\n"), message[1], message[2]);
       Module.setValue(digitalOutput, message[1], message[2]);
+      break;
+    case I2C_WRITE_PWM: // write pmw 
+      if (trace_mode) xprintf(F("I2C: set pwm %d %d\n"), message[1], message[2]);
+      Module.setValue(pwmOutput, message[1], message[2]);
       break;
     case I2C_SET_CONFIG:  // Configure I2C message size
       I2C_maxSize = message[1];

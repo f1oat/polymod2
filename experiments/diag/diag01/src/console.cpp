@@ -207,6 +207,8 @@ void toggleTrace()
     else Serial.println("Trace OFF");
 }
 
+extern void I2C_dump_stats();
+
 void pollCLI()
 {
     if (!Serial.available()) return;
@@ -236,6 +238,7 @@ void pollCLI()
             break;
         case 'i':
             sysinfo.dumpStats();
+            I2C_dump_stats();
             break;
         case 'R':
             restartModule();

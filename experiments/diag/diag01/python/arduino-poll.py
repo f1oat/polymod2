@@ -12,6 +12,7 @@
 #
 # /reset
 # /module/digital <module> <channel> <0|1>
+# /module/pwm <module> <channel> <value>
 
 import sys
 import time
@@ -45,6 +46,7 @@ I2C_TICK               = 0
 I2C_GET_CHANGES        = 1
 I2C_REQUEST_FULLSTATE  = 2
 I2C_WRITE_DIGITAL	   = 3
+I2C_WRITE_PWM	       = 4
 I2C_SET_CONFIG         = 32
 
 def testConnections():
@@ -96,6 +98,10 @@ def digitalOutputHandler(address: str, *args: List[Any]) -> None:
 	print(address, args)
 	bus.write_i2c_block_data(args[0], I2C_WRITE_DIGITAL, [ args[1], args[2] ])
 
+def pwmOutputHandler(address: str, *args: List[Any]) -> None:
+	print(address, args)
+	bus.write_i2c_block_data(args[0], I2C_WRITE_PWM, [ args[1], args[2] ])
+
 def resetHandler(address: str, *args: List[Any]) -> None:
 	print("reset")
 	client.send_message("/matrix/reset", [])
@@ -121,6 +127,7 @@ if __name__ == "__main__":
 
 	dispatcher = dispatcher.Dispatcher()
 	dispatcher.map("/module/digital", digitalOutputHandler)
+	dispatcher.map("/module/pwm", pwmOutputHandler)
 	dispatcher.map("/reset", resetHandler)
 	dispatcher.set_default_handler(trashHandler)
 
